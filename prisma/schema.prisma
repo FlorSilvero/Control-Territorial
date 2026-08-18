@@ -1,0 +1,254 @@
+// Pastoral districts management — data model
+// Stack: Prisma 7 (prisma-client generator + pg driver adapter) on Neon Postgres
+//
+// Design principles:
+// - Multi-tenant from day 1: organizationId on every domain entity.
+// - History is never overwritten: PastorAssignment is a temporal table.
+// - Church is the single source of truth for stats; districts/orgs aggregate.
+// - Soft delete only (archivedAt); statistics are append-only snapshots.
+// - Roles + audit prepared for future growth.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Auth & tenancy
+// ---------------------------------------------------------------------------
+
+enum Role {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  districts District[]
+  churches  Church[]
+  pastors   Pastor[]
+  auditLogs AuditLog[]
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String?
+  email          String    @unique
+  emailVerified  DateTime?
+  image          String?
+  hashedPassword String?
+  role           Role      @default(ADMIN)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  accounts Account[]
+  sessions Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+}
+
+// Auth.js (NextAuth) adapter models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Domain
+// ---------------------------------------------------------------------------
+
+model District {
+  id        String   @id @default(cuid())
+  name      String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  archivedAt DateTime?
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  createdById String?
+  updatedById String?
+
+  churches    Church[]
+  assignments PastorAssignment[]
+
+  @@index([organizationId])
+  @@index([archivedAt])
+}
+
+model Church {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  archivedAt DateTime?
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  districtId String
+  district   District @relation(fields: [districtId], references: [id])
+
+  createdById String?
+  updatedById String?
+
+  statistics StatisticRecord[]
+
+  @@index([organizationId])
+  @@index([districtId])
+  @@index([archivedAt])
+}
+
+model Pastor {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  archivedAt DateTime?
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  createdById String?
+  updatedById String?
+
+  assignments PastorAssignment[]
+
+  @@index([organizationId])
+  @@index([archivedAt])
+}
+
+// Temporal table: the heart of the history system.
+// The "current" pastor of a district is the assignment with endDate = null.
+// Historical periods are preserved as separate rows and never overwritten.
+model PastorAssignment {
+  id        String    @id @default(cuid())
+  startDate DateTime
+  endDate   DateTime? // null = currently active
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  organizationId String
+
+  pastorId String
+  pastor   Pastor @relation(fields: [pastorId], references: [id])
+
+  districtId String
+  district   District @relation(fields: [districtId], references: [id])
+
+  createdById String?
+
+  @@index([organizationId])
+  @@index([pastorId])
+  @@index([districtId])
+  @@index([districtId, endDate])
+  @@index([pastorId, endDate])
+}
+
+enum StatPeriod {
+  ANNUAL
+  MONTHLY
+}
+
+// One row per (church, year, month). month = null => annual record.
+// memberCount is a STOCK (snapshot, replaced), baptismCount is a FLOW (summed).
+// Append-only by convention; edits leave an audit trail.
+model StatisticRecord {
+  id          String     @id @default(cuid())
+  period      StatPeriod
+  year        Int
+  month       Int? // 1-12; null for annual records
+  memberCount Int        @default(0)
+  baptismCount Int       @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  organizationId String
+
+  churchId String
+  church   Church @relation(fields: [churchId], references: [id])
+
+  createdById String?
+  updatedById String?
+
+  @@unique([churchId, year, month])
+  @@index([organizationId])
+  @@index([churchId])
+  @@index([year])
+  @@index([churchId, year])
+}
+
+// Lightweight audit trail; extensible to full field-level auditing later.
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String // e.g. "district.create", "pastor.reassign"
+  entityType String
+  entityId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  actorId String?
+
+  @@index([organizationId])
+  @@index([entityType, entityId])
+}
