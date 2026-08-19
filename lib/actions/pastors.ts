@@ -3,9 +3,42 @@
 import { prisma } from "@/lib/prisma"
 import { requireSession, canEdit } from "@/lib/session"
 import { pastorSchema, assignmentSchema, idSchema } from "@/lib/validations"
+import { normalizeText } from "@/lib/utils"
 import { revalidatePath } from "next/cache"
 
 type ActionResult = { ok: true; id?: string } | { ok: false; error: string }
+
+/**
+ * Accent- and case-insensitive first+last name match anywhere in the org,
+ * active or archived — an archived match should be restored (keeping its
+ * assignment and statistics history) instead of masked by a fresh duplicate
+ * record. Postgres ILIKE can't strip diacritics via Prisma, so this compares
+ * normalized text in JS ("Jose" must match "José").
+ */
+async function findDuplicatePastor(
+  orgId: string,
+  firstName: string,
+  lastName: string,
+  excludeId?: string,
+) {
+  const candidates = await prisma.pastor.findMany({
+    where: { organizationId: orgId, id: excludeId ? { not: excludeId } : undefined },
+    select: { id: true, firstName: true, lastName: true, archivedAt: true },
+  })
+  const targetFirst = normalizeText(firstName)
+  const targetLast = normalizeText(lastName)
+  return (
+    candidates.find(
+      (p) => normalizeText(p.firstName) === targetFirst && normalizeText(p.lastName) === targetLast,
+    ) ?? null
+  )
+}
+
+function duplicatePastorError(duplicate: { archivedAt: Date | null }): string {
+  return duplicate.archivedAt
+    ? "Ya existe un pastor archivado con ese nombre y apellido. Restauralo desde Archivados en lugar de crear uno nuevo."
+    : "Ya existe un pastor con ese nombre y apellido"
+}
 
 async function audit(
   orgId: string,
@@ -33,6 +66,9 @@ export async function createPastor(input: unknown): Promise<ActionResult> {
 
   const parsed = pastorSchema.safeParse(input)
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
+
+  const duplicate = await findDuplicatePastor(ctx.organizationId, parsed.data.firstName, parsed.data.lastName)
+  if (duplicate) return { ok: false, error: duplicatePastorError(duplicate) }
 
   const pastor = await prisma.pastor.create({
     data: {
@@ -66,6 +102,9 @@ export async function updatePastor(id: string, input: unknown): Promise<ActionRe
     where: { id, organizationId: ctx.organizationId },
   })
   if (!existing) return { ok: false, error: "Pastor no encontrado" }
+
+  const duplicate = await findDuplicatePastor(ctx.organizationId, parsed.data.firstName, parsed.data.lastName, id)
+  if (duplicate) return { ok: false, error: duplicatePastorError(duplicate) }
 
   await prisma.pastor.update({
     where: { id },

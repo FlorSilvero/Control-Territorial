@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ChurchDialog } from "@/components/churches/church-dialog"
+import { normalizeText } from "@/lib/utils"
 import { Church, MapPinned, Users, Waves, UserCheck, Plus, Search, ArrowRight } from "lucide-react"
 
 type ChurchItem = {
@@ -38,7 +39,7 @@ export function ChurchesListClient({
   const [selectedDistrict, setSelectedDistrict] = useState<string>("all")
 
   const filteredChurches = churches.filter((c) => {
-    const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase())
+    const matchesSearch = normalizeText(c.name).includes(normalizeText(search))
     const matchesDistrict =
       selectedDistrict === "all" || c.district.id === selectedDistrict
     return matchesSearch && matchesDistrict

@@ -16,6 +16,7 @@ import {
 import { PastorDialog } from "@/components/pastors/pastor-dialog"
 import { AssignPastorDialog } from "@/components/pastors/assign-pastor-dialog"
 import { formatDuration, formatDate, tenureInMonths } from "@/lib/date-utils"
+import { normalizeText } from "@/lib/utils"
 import {
   Users,
   MapPinned,
@@ -61,8 +62,8 @@ export function PastorsListClient({
 
   // Filter
   const filtered = pastors.filter((p) => {
-    const fullName = `${p.firstName} ${p.lastName}`.toLowerCase()
-    const matchesSearch = fullName.includes(search.toLowerCase())
+    const fullName = normalizeText(`${p.firstName} ${p.lastName}`)
+    const matchesSearch = fullName.includes(normalizeText(search))
 
     if (!matchesSearch) return false
 

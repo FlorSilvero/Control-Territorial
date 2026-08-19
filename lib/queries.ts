@@ -1,5 +1,6 @@
 import "server-only"
 import { prisma } from "@/lib/prisma"
+import { normalizeText } from "@/lib/utils"
 import {
   computeChurchStats,
   assignmentForDate,
@@ -548,59 +549,55 @@ export type SearchResult = {
 }
 
 export async function globalSearch(orgId: string, q: string): Promise<SearchResult[]> {
-  if (!q.trim()) return []
-  const term = q.trim()
+  const term = normalizeText(q)
+  if (!term) return []
 
+  // Diacritics can't be stripped inside a Postgres ILIKE via Prisma, so we
+  // fetch the tenant's active rows (small per-org scale) and match on
+  // normalized text in JS instead — "Jose" must find "José".
   const [districts, churches, pastors] = await Promise.all([
     prisma.district.findMany({
-      where: {
-        organizationId: orgId,
-        archivedAt: null,
-        name: { contains: term, mode: "insensitive" },
-      },
-      take: 5,
+      where: { organizationId: orgId, archivedAt: null },
+      select: { id: true, name: true },
     }),
     prisma.church.findMany({
-      where: {
-        organizationId: orgId,
-        archivedAt: null,
-        name: { contains: term, mode: "insensitive" },
-      },
-      include: { district: true },
-      take: 5,
+      where: { organizationId: orgId, archivedAt: null },
+      select: { id: true, name: true, district: { select: { name: true } } },
     }),
     prisma.pastor.findMany({
-      where: {
-        organizationId: orgId,
-        archivedAt: null,
-        OR: [
-          { firstName: { contains: term, mode: "insensitive" } },
-          { lastName: { contains: term, mode: "insensitive" } },
-        ],
-      },
-      take: 5,
+      where: { organizationId: orgId, archivedAt: null },
+      select: { id: true, firstName: true, lastName: true },
     }),
   ])
 
   return [
-    ...districts.map((d) => ({
-      id: d.id,
-      type: "district" as const,
-      label: d.name,
-      sublabel: "Distrito",
-    })),
-    ...churches.map((c) => ({
-      id: c.id,
-      type: "church" as const,
-      label: c.name,
-      sublabel: `Iglesia · ${c.district.name}`,
-    })),
-    ...pastors.map((p) => ({
-      id: p.id,
-      type: "pastor" as const,
-      label: `${p.firstName} ${p.lastName}`,
-      sublabel: "Pastor",
-    })),
+    ...districts
+      .filter((d) => normalizeText(d.name).includes(term))
+      .slice(0, 5)
+      .map((d) => ({
+        id: d.id,
+        type: "district" as const,
+        label: d.name,
+        sublabel: "Distrito",
+      })),
+    ...churches
+      .filter((c) => normalizeText(c.name).includes(term))
+      .slice(0, 5)
+      .map((c) => ({
+        id: c.id,
+        type: "church" as const,
+        label: c.name,
+        sublabel: `Iglesia · ${c.district.name}`,
+      })),
+    ...pastors
+      .filter((p) => normalizeText(`${p.firstName} ${p.lastName}`).includes(term))
+      .slice(0, 5)
+      .map((p) => ({
+        id: p.id,
+        type: "pastor" as const,
+        label: `${p.firstName} ${p.lastName}`,
+        sublabel: "Pastor",
+      })),
   ]
 }
 
