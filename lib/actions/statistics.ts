@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { requireSession, canEdit } from "@/lib/session"
-import { statisticSchema } from "@/lib/validations"
+import { statisticSchema, idSchema } from "@/lib/validations"
 import { revalidatePath } from "next/cache"
 
 type ActionResult = { ok: true; id?: string } | { ok: false; error: string }
@@ -79,6 +79,7 @@ export async function upsertStatistic(input: unknown): Promise<ActionResult> {
 export async function deleteStatistic(id: string): Promise<ActionResult> {
   const ctx = await requireSession()
   if (!canEdit(ctx.role)) return { ok: false, error: "No autorizado" }
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Registro no encontrado" }
 
   const record = await prisma.statisticRecord.findFirst({
     where: { id, organizationId: ctx.organizationId },

@@ -6,8 +6,10 @@ import { z } from "zod"
 import { authConfig } from "@/lib/auth.config"
 
 const credentialsSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
+  email: z.string().trim().max(254).email(),
+  // Capped well above any real password to avoid feeding bcrypt (CPU-bound)
+  // an attacker-controlled, unbounded-length string.
+  password: z.string().min(1).max(128),
 })
 
 export const { handlers, signIn, signOut, auth } = NextAuth({

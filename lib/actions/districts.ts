@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { requireSession, canEdit } from "@/lib/session"
-import { districtSchema } from "@/lib/validations"
+import { districtSchema, idSchema } from "@/lib/validations"
 import { revalidatePath } from "next/cache"
 
 type ActionResult = { ok: true; id?: string } | { ok: false; error: string }
@@ -53,6 +53,7 @@ export async function createDistrict(input: unknown): Promise<ActionResult> {
 export async function updateDistrict(id: string, input: unknown): Promise<ActionResult> {
   const ctx = await requireSession()
   if (!canEdit(ctx.role)) return { ok: false, error: "No autorizado" }
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Distrito no encontrado" }
 
   const parsed = districtSchema.safeParse(input)
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
@@ -80,6 +81,7 @@ export async function updateDistrict(id: string, input: unknown): Promise<Action
 export async function archiveDistrict(id: string): Promise<ActionResult> {
   const ctx = await requireSession()
   if (!canEdit(ctx.role)) return { ok: false, error: "No autorizado" }
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Distrito no encontrado" }
 
   const existing = await prisma.district.findFirst({
     where: { id, organizationId: ctx.organizationId },
@@ -104,6 +106,7 @@ export async function archiveDistrict(id: string): Promise<ActionResult> {
 export async function restoreDistrict(id: string): Promise<ActionResult> {
   const ctx = await requireSession()
   if (!canEdit(ctx.role)) return { ok: false, error: "No autorizado" }
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Distrito no encontrado" }
 
   const existing = await prisma.district.findFirst({
     where: { id, organizationId: ctx.organizationId },

@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { requireSession, canEdit } from "@/lib/session"
-import { pastorSchema, assignmentSchema } from "@/lib/validations"
+import { pastorSchema, assignmentSchema, idSchema } from "@/lib/validations"
 import { revalidatePath } from "next/cache"
 
 type ActionResult = { ok: true; id?: string } | { ok: false; error: string }
@@ -57,6 +57,7 @@ export async function createPastor(input: unknown): Promise<ActionResult> {
 export async function updatePastor(id: string, input: unknown): Promise<ActionResult> {
   const ctx = await requireSession()
   if (!canEdit(ctx.role)) return { ok: false, error: "No autorizado" }
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Pastor no encontrado" }
 
   const parsed = pastorSchema.safeParse(input)
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
@@ -87,6 +88,7 @@ export async function updatePastor(id: string, input: unknown): Promise<ActionRe
 export async function archivePastor(id: string): Promise<ActionResult> {
   const ctx = await requireSession()
   if (!canEdit(ctx.role)) return { ok: false, error: "No autorizado" }
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Pastor no encontrado" }
 
   const existing = await prisma.pastor.findFirst({
     where: { id, organizationId: ctx.organizationId },
@@ -111,6 +113,7 @@ export async function archivePastor(id: string): Promise<ActionResult> {
 export async function restorePastor(id: string): Promise<ActionResult> {
   const ctx = await requireSession()
   if (!canEdit(ctx.role)) return { ok: false, error: "No autorizado" }
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Pastor no encontrado" }
 
   const existing = await prisma.pastor.findFirst({
     where: { id, organizationId: ctx.organizationId },
@@ -143,7 +146,11 @@ export async function assignPastor(input: unknown): Promise<ActionResult> {
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
 
   const { pastorId, districtId, startDate } = parsed.data
-  const start = new Date(startDate)
+  // Parse "YYYY-MM-DD" as a local date, not UTC — `new Date(startDate)` would
+  // parse it as UTC midnight, which shifts a day earlier in negative-UTC-offset
+  // timezones once displayed.
+  const [startYear, startMonth, startDay] = startDate.split("-").map(Number)
+  const start = new Date(startYear, (startMonth ?? 1) - 1, startDay ?? 1)
   if (Number.isNaN(start.getTime())) return { ok: false, error: "Fecha inválida" }
 
   // The day the previous assignment ends: one day before the new start.
@@ -202,6 +209,7 @@ export async function assignPastor(input: unknown): Promise<ActionResult> {
 export async function endAssignment(assignmentId: string): Promise<ActionResult> {
   const ctx = await requireSession()
   if (!canEdit(ctx.role)) return { ok: false, error: "No autorizado" }
+  if (!idSchema.safeParse(assignmentId).success) return { ok: false, error: "Asignación no encontrada o ya finalizada" }
 
   const assignment = await prisma.pastorAssignment.findFirst({
     where: { id: assignmentId, organizationId: ctx.organizationId, endDate: null },

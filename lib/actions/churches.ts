@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { requireSession, canEdit } from "@/lib/session"
-import { churchSchema } from "@/lib/validations"
+import { churchSchema, idSchema } from "@/lib/validations"
 import { revalidatePath } from "next/cache"
 
 type ActionResult = { ok: true; id?: string } | { ok: false; error: string }
@@ -67,6 +67,7 @@ export async function createChurch(input: unknown): Promise<ActionResult> {
 export async function updateChurch(id: string, input: unknown): Promise<ActionResult> {
   const ctx = await requireSession()
   if (!canEdit(ctx.role)) return { ok: false, error: "No autorizado" }
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Iglesia no encontrada" }
 
   const parsed = churchSchema.safeParse(input)
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message }
@@ -100,6 +101,7 @@ export async function updateChurch(id: string, input: unknown): Promise<ActionRe
 export async function archiveChurch(id: string): Promise<ActionResult> {
   const ctx = await requireSession()
   if (!canEdit(ctx.role)) return { ok: false, error: "No autorizado" }
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Iglesia no encontrada" }
 
   const existing = await prisma.church.findFirst({
     where: { id, organizationId: ctx.organizationId },
@@ -117,6 +119,7 @@ export async function archiveChurch(id: string): Promise<ActionResult> {
 export async function restoreChurch(id: string): Promise<ActionResult> {
   const ctx = await requireSession()
   if (!canEdit(ctx.role)) return { ok: false, error: "No autorizado" }
+  if (!idSchema.safeParse(id).success) return { ok: false, error: "Iglesia no encontrada" }
 
   const existing = await prisma.church.findFirst({
     where: { id, organizationId: ctx.organizationId },
