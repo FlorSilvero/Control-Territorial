@@ -30,27 +30,60 @@ export async function upsertStatistic(input: unknown): Promise<ActionResult> {
   })
   if (!church) return { ok: false, error: "Iglesia no encontrada" }
 
-  const record = await prisma.statisticRecord.upsert({
-    where: {
-      churchId_year_month: { churchId: data.churchId, year: data.year, month: month },
-    },
-    create: {
-      organizationId: ctx.organizationId,
-      churchId: data.churchId,
-      period: data.period,
-      year: data.year,
-      month,
-      memberCount: data.memberCount,
-      baptismCount: data.baptismCount,
-      createdById: ctx.userId,
-      updatedById: ctx.userId,
-    },
-    update: {
-      memberCount: data.memberCount,
-      baptismCount: data.baptismCount,
-      updatedById: ctx.userId,
-    },
-  })
+  // Prisma's compound-unique lookup (churchId_year_month) can't take a null
+  // month — SQL unique constraints treat each NULL as distinct, so annual
+  // rows (month: null) have to be upserted by hand instead of via the
+  // generated compound key, which only accepts a real month number.
+  const record =
+    month === null
+      ? await (async () => {
+          const existing = await prisma.statisticRecord.findFirst({
+            where: { churchId: data.churchId, year: data.year, month: null },
+          })
+          return existing
+            ? prisma.statisticRecord.update({
+                where: { id: existing.id },
+                data: {
+                  memberCount: data.memberCount,
+                  baptismCount: data.baptismCount,
+                  updatedById: ctx.userId,
+                },
+              })
+            : prisma.statisticRecord.create({
+                data: {
+                  organizationId: ctx.organizationId,
+                  churchId: data.churchId,
+                  period: data.period,
+                  year: data.year,
+                  month: null,
+                  memberCount: data.memberCount,
+                  baptismCount: data.baptismCount,
+                  createdById: ctx.userId,
+                  updatedById: ctx.userId,
+                },
+              })
+        })()
+      : await prisma.statisticRecord.upsert({
+          where: {
+            churchId_year_month: { churchId: data.churchId, year: data.year, month },
+          },
+          create: {
+            organizationId: ctx.organizationId,
+            churchId: data.churchId,
+            period: data.period,
+            year: data.year,
+            month,
+            memberCount: data.memberCount,
+            baptismCount: data.baptismCount,
+            createdById: ctx.userId,
+            updatedById: ctx.userId,
+          },
+          update: {
+            memberCount: data.memberCount,
+            baptismCount: data.baptismCount,
+            updatedById: ctx.userId,
+          },
+        })
 
   await prisma.auditLog.create({
     data: {

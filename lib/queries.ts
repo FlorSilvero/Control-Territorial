@@ -168,7 +168,8 @@ export type MonthlyRow = {
  * snapshot per church per year, then sum. Baptisms = sum within the year.
  */
 function buildYearlyHistory(rows: StatRow[], windows: AssignmentWindow[]): YearlyRow[] {
-  const years = Array.from(new Set(rows.map((r) => r.year))).sort((a, b) => a - b)
+  // Most recent year first.
+  const years = Array.from(new Set(rows.map((r) => r.year))).sort((a, b) => b - a)
   // Group rows by "churchKey" is not available here (rows are flattened), so we
   // approximate members as the sum of the latest-month snapshot in the year.
   // To do this correctly per church, callers pass rows already per church for
@@ -192,7 +193,8 @@ function buildYearlyHistory(rows: StatRow[], windows: AssignmentWindow[]): Yearl
 
 function buildMonthlyHistory(rows: StatRow[], windows: AssignmentWindow[]): MonthlyRow[] {
   const result: MonthlyRow[] = []
-  for (let month = 1; month <= CURRENT_MONTH; month++) {
+  // Most recent month first.
+  for (let month = CURRENT_MONTH; month >= 1; month--) {
     const monthRows = rows.filter(
       (r) => r.year === CURRENT_YEAR && r.month === month,
     )
@@ -266,7 +268,7 @@ export async function getChurchDetail(orgId: string, id: string) {
   const church = await prisma.church.findFirst({
     where: { id, organizationId: orgId },
     include: {
-      statistics: { orderBy: [{ year: "asc" }, { month: "asc" }] },
+      statistics: { orderBy: [{ year: "desc" }, { month: "desc" }] },
       district: {
         include: {
           assignments: { include: { pastor: true }, orderBy: { startDate: "desc" } },
@@ -290,7 +292,6 @@ export async function getChurchDetail(orgId: string, id: string) {
   const current = church.district.assignments.find((a) => a.endDate === null) ?? null
 
   const yearly = buildYearlyHistory(rows, windows)
-  const monthly = buildMonthlyHistory(rows, windows)
 
   return {
     id: church.id,
@@ -305,7 +306,6 @@ export async function getChurchDetail(orgId: string, id: string) {
     baptismsTotal: s.baptismsTotal,
     statistics: rows,
     yearly,
-    monthly,
   }
 }
 
@@ -394,6 +394,16 @@ export async function getPastorDetail(orgId: string, id: string) {
       baptisms,
       currentYearMonthly: a.endDate === null ? monthly.slice(0, CURRENT_MONTH) : null,
     }
+  })
+
+  // Active tenure (endDate null) always leads, regardless of its startDate;
+  // the rest follow most-recent-first. A plain startDate-desc sort can't
+  // guarantee this when a past tenure happens to start later than the one
+  // still in progress.
+  assignments.sort((a, b) => {
+    if (a.endDate === null) return -1
+    if (b.endDate === null) return 1
+    return b.startDate.getTime() - a.startDate.getTime()
   })
 
   const current = pastor.assignments.find((a) => a.endDate === null) ?? null

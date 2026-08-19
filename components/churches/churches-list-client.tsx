@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select"
 import { ChurchDialog } from "@/components/churches/church-dialog"
 import { normalizeText } from "@/lib/utils"
-import { Church, MapPinned, Users, Waves, UserCheck, Plus, Search, ArrowRight } from "lucide-react"
+import { Church, MapPinned, Users, Waves, UserCheck, Plus, Search } from "lucide-react"
 
 type ChurchItem = {
   id: string
@@ -124,7 +124,9 @@ export function ChurchesListClient({
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="font-serif text-xl font-bold flex items-center gap-2">
                         <Church className="size-5 text-primary shrink-0" />
-                        <span>{c.name}</span>
+                        <Link href={`/churches/${c.id}`} className="hover:underline">
+                          {c.name}
+                        </Link>
                       </CardTitle>
                       <Badge variant="outline" className="shrink-0 flex items-center gap-1">
                         <MapPinned className="size-3" />
@@ -163,15 +165,6 @@ export function ChurchesListClient({
                     </div>
                   </CardContent>
                 </div>
-
-                <CardFooter className="pt-3 border-t">
-                  <Button asChild variant="ghost" className="w-full justify-between text-xs font-semibold">
-                    <Link href={`/churches/${c.id}`}>
-                      <span>Ver detalles de la iglesia</span>
-                      <ArrowRight className="size-3.5 ml-1" />
-                    </Link>
-                  </Button>
-                </CardFooter>
               </Card>
             )
           })}

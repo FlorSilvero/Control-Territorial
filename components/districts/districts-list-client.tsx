@@ -2,11 +2,11 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DistrictDialog } from "@/components/districts/district-dialog"
-import { MapPinned, Church, Users, Waves, UserCheck, Plus, ArrowRight } from "lucide-react"
+import { MapPinned, Church, Users, Waves, UserCheck, Plus } from "lucide-react"
 
 type DistrictItem = {
   id: string
@@ -72,7 +72,9 @@ export function DistrictsListClient({ districts }: { districts: DistrictItem[] }
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="font-serif text-xl font-bold flex items-center gap-2">
                         <MapPinned className="size-5 text-primary shrink-0" />
-                        <span>{d.name}</span>
+                        <Link href={`/districts/${d.id}`} className="hover:underline">
+                          {d.name}
+                        </Link>
                       </CardTitle>
                     </div>
                   </CardHeader>
@@ -114,15 +116,6 @@ export function DistrictsListClient({ districts }: { districts: DistrictItem[] }
                     </div>
                   </CardContent>
                 </div>
-
-                <CardFooter className="pt-3 border-t">
-                  <Button asChild variant="ghost" className="w-full justify-between text-xs font-semibold">
-                    <Link href={`/districts/${d.id}`}>
-                      <span>Ver detalles</span>
-                      <ArrowRight className="size-3.5 ml-1" />
-                    </Link>
-                  </Button>
-                </CardFooter>
               </Card>
             )
           })}

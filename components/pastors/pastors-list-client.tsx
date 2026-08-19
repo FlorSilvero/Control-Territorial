@@ -25,7 +25,6 @@ import {
   UserCheck,
   Calendar,
   Clock,
-  ArrowRight,
   ArrowUpDown,
 } from "lucide-react"
 
@@ -201,7 +200,9 @@ export function PastorsListClient({
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="font-serif text-xl font-bold flex items-center gap-2">
                         <Users className="size-5 text-primary shrink-0" />
-                        <span>{fullName}</span>
+                        <Link href={`/pastors/${p.id}`} className="hover:underline">
+                          {fullName}
+                        </Link>
                       </CardTitle>
                       {p.currentDistrict ? (
                         <Badge variant="secondary" className="shrink-0 flex items-center gap-1">
@@ -263,11 +264,6 @@ export function PastorsListClient({
                     >
                       <UserCheck className="size-3.5 mr-1" />
                       {p.currentDistrict ? "Cambiar distrito" : "Asignar"}
-                    </Button>
-                    <Button asChild variant="ghost" size="sm" className="text-xs">
-                      <Link href={`/pastors/${p.id}`}>
-                        <ArrowRight className="size-4" />
-                      </Link>
                     </Button>
                   </div>
                 </CardFooter>

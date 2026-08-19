@@ -27,18 +27,22 @@ export function AssignPastorDialog({
   open,
   onOpenChange,
   defaultPastorId,
+  initialPastorId,
   defaultDistrictId,
   pastorOptions,
   districtOptions,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Pre-fills the pastor AND locks the select (used from a specific pastor's own page). */
   defaultPastorId?: string
+  /** Pre-fills the pastor without locking it (e.g. the district's current pastor, still changeable). */
+  initialPastorId?: string
   defaultDistrictId?: string
   pastorOptions: { id: string; name: string }[]
   districtOptions: { id: string; name: string }[]
 }) {
-  const [pastorId, setPastorId] = useState(defaultPastorId ?? "")
+  const [pastorId, setPastorId] = useState(defaultPastorId ?? initialPastorId ?? "")
   const [districtId, setDistrictId] = useState(defaultDistrictId ?? "")
   const today = new Date().toISOString().split("T")[0]
   const [startDate, setStartDate] = useState(today)
@@ -49,11 +53,11 @@ export function AssignPastorDialog({
 
   useEffect(() => {
     if (open) {
-      setPastorId(defaultPastorId ?? "")
+      setPastorId(defaultPastorId ?? initialPastorId ?? "")
       setDistrictId(defaultDistrictId ?? "")
       setStartDate(new Date().toISOString().split("T")[0])
     }
-  }, [open, defaultPastorId, defaultDistrictId])
+  }, [open, defaultPastorId, initialPastorId, defaultDistrictId])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

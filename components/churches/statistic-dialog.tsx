@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -29,6 +29,7 @@ export function StatisticDialog({
   onOpenChange,
   churchId,
   initialRecord,
+  existingRecords = [],
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -41,11 +42,21 @@ export function StatisticDialog({
     memberCount: number
     baptismCount: number
   } | null
+  existingRecords?: {
+    period: "ANNUAL" | "MONTHLY"
+    year: number
+    month?: number | null
+    memberCount: number
+    baptismCount: number
+  }[]
 }) {
   const currentYear = new Date().getFullYear()
   const currentMonth = new Date().getMonth() + 1
 
-  const [period, setPeriod] = useState<"ANNUAL" | "MONTHLY">(initialRecord?.period ?? "MONTHLY")
+  // Editing a legacy annual record keeps its own period; every new record is
+  // always monthly now (yearly totals are just the sum of the monthly ones).
+  const isEditingAnnual = initialRecord?.period === "ANNUAL"
+
   const [year, setYear] = useState<number>(initialRecord?.year ?? currentYear)
   const [month, setMonth] = useState<number>(initialRecord?.month ?? currentMonth)
   const [memberCount, setMemberCount] = useState<number>(initialRecord?.memberCount ?? 0)
@@ -54,14 +65,52 @@ export function StatisticDialog({
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
+  const findMatch = (y: number, m: number) =>
+    existingRecords.find((r) => r.period === "MONTHLY" && r.year === y && r.month === m)
+
+  // The dialog element stays mounted across opens (only `open` toggles), so
+  // its state has to be re-synced from initialRecord every time it opens —
+  // otherwise reopening it for a different record keeps showing whatever was
+  // last typed, and saving quietly overwrites that other record.
+  useEffect(() => {
+    if (!open) return
+    const y = initialRecord?.year ?? currentYear
+    const m = isEditingAnnual ? currentMonth : initialRecord?.month ?? currentMonth
+    setYear(y)
+    setMonth(m)
+    const match = isEditingAnnual ? initialRecord : findMatch(y, m) ?? initialRecord
+    setMemberCount(match?.memberCount ?? 0)
+    setBaptismCount(match?.baptismCount ?? 0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialRecord])
+
+  // If a monthly record already exists for the selected year/month, surface
+  // it so the "existing data loaded" hint below can render.
+  const existingMatch = isEditingAnnual ? null : findMatch(year, month)
+
+  const handleYearChange = (newYear: number) => {
+    setYear(newYear)
+    if (isEditingAnnual) return
+    const match = findMatch(newYear, month)
+    setMemberCount(match?.memberCount ?? 0)
+    setBaptismCount(match?.baptismCount ?? 0)
+  }
+
+  const handleMonthChange = (newMonth: number) => {
+    setMonth(newMonth)
+    const match = findMatch(year, newMonth)
+    setMemberCount(match?.memberCount ?? 0)
+    setBaptismCount(match?.baptismCount ?? 0)
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     startTransition(async () => {
       const res = await upsertStatistic({
         churchId,
-        period,
+        period: isEditingAnnual ? "ANNUAL" : "MONTHLY",
         year: Number(year),
-        month: period === "MONTHLY" ? Number(month) : null,
+        month: isEditingAnnual ? null : Number(month),
         memberCount: Number(memberCount),
         baptismCount: Number(baptismCount),
       })
@@ -83,30 +132,10 @@ export function StatisticDialog({
           <DialogTitle>Registrar / Editar Estadística</DialogTitle>
           <DialogDescription>
             Ingresá los datos de miembros (fotografía de estado) y bautismos acumulados durante el
-            período.
+            mes. El total anual se calcula automáticamente como la suma de los meses.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="stat-period">Tipo de Registro *</Label>
-            <Select
-              value={period}
-              onValueChange={(val) => setPeriod(val as "ANNUAL" | "MONTHLY")}
-              items={{
-                MONTHLY: "Mensual (Año actual o detallado)",
-                ANNUAL: "Anual (Cierre de año)",
-              }}
-            >
-              <SelectTrigger id="stat-period">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="MONTHLY">Mensual (Año actual o detallado)</SelectItem>
-                <SelectItem value="ANNUAL">Anual (Cierre de año)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="stat-year">Año *</Label>
@@ -116,17 +145,18 @@ export function StatisticDialog({
                 min={1900}
                 max={currentYear + 1}
                 value={year}
-                onChange={(e) => setYear(Number(e.target.value))}
+                onChange={(e) => handleYearChange(Number(e.target.value))}
+                disabled={isEditingAnnual}
                 required
               />
             </div>
 
-            {period === "MONTHLY" && (
+            {!isEditingAnnual && (
               <div className="space-y-2">
                 <Label htmlFor="stat-month">Mes *</Label>
                 <Select
                   value={String(month)}
-                  onValueChange={(val) => setMonth(Number(val))}
+                  onValueChange={(val) => handleMonthChange(Number(val))}
                   items={Object.fromEntries(MONTH_NAMES.map((name, index) => [String(index + 1), name]))}
                 >
                   <SelectTrigger id="stat-month">
@@ -143,6 +173,13 @@ export function StatisticDialog({
               </div>
             )}
           </div>
+
+          {existingMatch && (
+            <p className="text-xs rounded-md bg-muted px-3 py-2 text-muted-foreground">
+              Ya existe un registro para {MONTH_NAMES[month - 1]} de {year}. Se cargaron sus datos
+              — al guardar, se actualiza ese registro en lugar de crear uno nuevo.
+            </p>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

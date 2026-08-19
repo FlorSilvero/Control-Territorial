@@ -37,7 +37,6 @@ import {
   Plus,
   Pencil,
   Archive,
-  ArrowRight,
   Calendar,
   Clock,
 } from "lucide-react"
@@ -273,7 +272,9 @@ export function DistrictDetailClient({
                   <CardHeader className="pb-3">
                     <CardTitle className="font-serif text-lg font-semibold flex items-center gap-2">
                       <Church className="size-4 text-primary shrink-0" />
-                      <span>{c.name}</span>
+                      <Link href={`/churches/${c.id}`} className="hover:underline">
+                        {c.name}
+                      </Link>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
@@ -294,14 +295,6 @@ export function DistrictDetailClient({
                       <Badge variant="outline">{c.baptismsThisYear}</Badge>
                     </div>
                   </CardContent>
-                  <div className="p-4 pt-0 border-t mt-2">
-                    <Button asChild variant="ghost" size="sm" className="w-full justify-between text-xs mt-2">
-                      <Link href={`/churches/${c.id}`}>
-                        <span>Ver detalles de la iglesia</span>
-                        <ArrowRight className="size-3.5" />
-                      </Link>
-                    </Button>
-                  </div>
                 </Card>
               ))}
             </div>
@@ -475,6 +468,7 @@ export function DistrictDetailClient({
         open={assignOpen}
         onOpenChange={setAssignOpen}
         defaultDistrictId={district.id}
+        initialPastorId={district.currentAssignment?.pastor.id}
         pastorOptions={pastorOptions}
         districtOptions={districtOptions}
       />

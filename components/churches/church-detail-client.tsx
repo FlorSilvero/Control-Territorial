@@ -42,7 +42,7 @@ import {
   MapPin,
 } from "lucide-react"
 import { toast } from "sonner"
-import type { YearlyRow, MonthlyRow } from "@/lib/queries"
+import type { YearlyRow } from "@/lib/queries"
 
 type ChurchDetailData = {
   id: string
@@ -64,7 +64,6 @@ type ChurchDetailData = {
     baptismCount: number
   }[]
   yearly: YearlyRow[]
-  monthly: MonthlyRow[]
 }
 
 export function ChurchDetailClient({
@@ -235,7 +234,7 @@ export function ChurchDetailClient({
           </TabsTrigger>
           <TabsTrigger value="monthly" className="gap-2">
             <Waves className="size-4" />
-            Desglose Mensual ({new Date().getFullYear()})
+            Desglose Mensual
           </TabsTrigger>
         </TabsList>
 
@@ -295,16 +294,14 @@ export function ChurchDetailClient({
           </Card>
         </TabsContent>
 
-        {/* MONTHLY TAB */}
+        {/* MONTHLY TAB — full editable ledger of every statistic record */}
         <TabsContent value="monthly" className="space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="font-serif text-lg font-bold">
-                  Desglose Mensual (Año {new Date().getFullYear()})
-                </CardTitle>
+                <CardTitle className="font-serif text-lg font-bold">Desglose Mensual</CardTitle>
                 <CardDescription>
-                  Evolución mes a mes para el año en curso.
+                  Todos los registros ingresados, del más reciente al más antiguo.
                 </CardDescription>
               </div>
               <Button size="sm" variant="outline" onClick={openNewStat} className="gap-1.5">
@@ -313,38 +310,54 @@ export function ChurchDetailClient({
               </Button>
             </CardHeader>
             <CardContent>
-              {church.monthly.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-6">
-                  Sin registros mensuales para el año actual.
-                </p>
+              {church.statistics.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">Sin registros.</p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Mes</TableHead>
-                      <TableHead>Pastor en el Período</TableHead>
+                      <TableHead>Período</TableHead>
+                      <TableHead>Año / Mes</TableHead>
                       <TableHead className="text-right">Miembros</TableHead>
                       <TableHead className="text-right">Bautismos</TableHead>
+                      <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {church.monthly.map((row) => (
-                      <TableRow key={row.month}>
-                        <TableCell className="font-medium">
-                          {MONTH_NAMES[row.month - 1]}
-                        </TableCell>
+                    {church.statistics.map((rec) => (
+                      <TableRow key={rec.id}>
                         <TableCell>
-                          {row.pastor ? (
-                            <span>
-                              {row.pastor.firstName} {row.pastor.lastName}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground italic">Sin pastor</span>
-                          )}
+                          <Badge variant={rec.period === "ANNUAL" ? "secondary" : "outline"}>
+                            {rec.period === "ANNUAL" ? "Anual" : "Mensual"}
+                          </Badge>
                         </TableCell>
-                        <TableCell className="text-right font-mono">{row.members}</TableCell>
+                        <TableCell className="font-medium">
+                          {rec.year}
+                          {rec.month ? ` - ${MONTH_NAMES[rec.month - 1]}` : ""}
+                        </TableCell>
+                        <TableCell className="text-right font-mono">{rec.memberCount}</TableCell>
                         <TableCell className="text-right font-mono font-bold text-primary">
-                          {row.baptisms}
+                          {rec.baptismCount}
+                        </TableCell>
+                        <TableCell className="text-right space-x-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => openEditStat(rec)}
+                            className="size-8"
+                          >
+                            <Pencil className="size-3.5" />
+                            <span className="sr-only">Editar</span>
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleDeleteStat(rec.id)}
+                            className="size-8 text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="size-3.5" />
+                            <span className="sr-only">Eliminar</span>
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -356,75 +369,11 @@ export function ChurchDetailClient({
         </TabsContent>
       </Tabs>
 
-      {/* Raw Records Table with Edit / Delete Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-serif text-base font-bold">Todos los Registros Estadísticos</CardTitle>
-          <CardDescription>
-            Listado completo de filas ingresadas para auditoría o edición individual.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {church.statistics.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">Sin registros.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Período</TableHead>
-                  <TableHead>Año / Mes</TableHead>
-                  <TableHead className="text-right">Miembros</TableHead>
-                  <TableHead className="text-right">Bautismos</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {church.statistics.map((rec) => (
-                  <TableRow key={rec.id}>
-                    <TableCell>
-                      <Badge variant={rec.period === "ANNUAL" ? "secondary" : "outline"}>
-                        {rec.period === "ANNUAL" ? "Anual" : "Mensual"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {rec.year}
-                      {rec.month ? ` - ${MONTH_NAMES[rec.month - 1]}` : ""}
-                    </TableCell>
-                    <TableCell className="text-right font-mono">{rec.memberCount}</TableCell>
-                    <TableCell className="text-right font-mono font-bold">{rec.baptismCount}</TableCell>
-                    <TableCell className="text-right space-x-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => openEditStat(rec)}
-                        className="size-8"
-                      >
-                        <Pencil className="size-3.5" />
-                        <span className="sr-only">Editar</span>
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleDeleteStat(rec.id)}
-                        className="size-8 text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="size-3.5" />
-                        <span className="sr-only">Eliminar</span>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Dialogs */}
       <ChurchDialog
         open={editOpen}
         onOpenChange={setEditOpen}
-        church={church}
+        church={{ ...church, districtId: church.district.id }}
         districtOptions={districtOptions}
       />
 
@@ -433,6 +382,7 @@ export function ChurchDetailClient({
         onOpenChange={setStatOpen}
         churchId={church.id}
         initialRecord={editingRecord}
+        existingRecords={church.statistics}
       />
     </div>
   )
