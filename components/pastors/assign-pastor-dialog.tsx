@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -44,6 +44,16 @@ export function AssignPastorDialog({
   const [startDate, setStartDate] = useState(today)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const isPastorLocked = Boolean(defaultPastorId)
+  const isDistrictLocked = Boolean(defaultDistrictId)
+
+  useEffect(() => {
+    if (open) {
+      setPastorId(defaultPastorId ?? "")
+      setDistrictId(defaultDistrictId ?? "")
+      setStartDate(new Date().toISOString().split("T")[0])
+    }
+  }, [open, defaultPastorId, defaultDistrictId])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -85,7 +95,12 @@ export function AssignPastorDialog({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="assign-pastor">Pastor *</Label>
-            <Select value={pastorId} onValueChange={setPastorId}>
+            <Select
+              value={pastorId}
+              onValueChange={setPastorId}
+              items={pastorOptions.map((p) => ({ value: p.id, label: p.name }))}
+              disabled={isPastorLocked}
+            >
               <SelectTrigger id="assign-pastor">
                 <SelectValue placeholder="Seleccionar pastor..." />
               </SelectTrigger>
@@ -101,7 +116,12 @@ export function AssignPastorDialog({
 
           <div className="space-y-2">
             <Label htmlFor="assign-district">Distrito Destino *</Label>
-            <Select value={districtId} onValueChange={setDistrictId}>
+            <Select
+              value={districtId}
+              onValueChange={setDistrictId}
+              items={districtOptions.map((d) => ({ value: d.id, label: d.name }))}
+              disabled={isDistrictLocked}
+            >
               <SelectTrigger id="assign-district">
                 <SelectValue placeholder="Seleccionar distrito..." />
               </SelectTrigger>

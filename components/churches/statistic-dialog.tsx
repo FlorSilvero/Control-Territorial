@@ -92,6 +92,10 @@ export function StatisticDialog({
             <Select
               value={period}
               onValueChange={(val) => setPeriod(val as "ANNUAL" | "MONTHLY")}
+              items={{
+                MONTHLY: "Mensual (Año actual o detallado)",
+                ANNUAL: "Anual (Cierre de año)",
+              }}
             >
               <SelectTrigger id="stat-period">
                 <SelectValue />
@@ -123,6 +127,7 @@ export function StatisticDialog({
                 <Select
                   value={String(month)}
                   onValueChange={(val) => setMonth(Number(val))}
+                  items={Object.fromEntries(MONTH_NAMES.map((name, index) => [String(index + 1), name]))}
                 >
                   <SelectTrigger id="stat-month">
                     <SelectValue />

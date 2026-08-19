@@ -72,7 +72,14 @@ export function ChurchesListClient({
           />
         </div>
 
-        <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
+        <Select
+          value={selectedDistrict}
+          onValueChange={setSelectedDistrict}
+          items={{
+            all: "Todos los distritos",
+            ...Object.fromEntries(districtOptions.map((d) => [d.id, d.name])),
+          }}
+        >
           <SelectTrigger className="w-full sm:w-64">
             <SelectValue placeholder="Todos los distritos" />
           </SelectTrigger>

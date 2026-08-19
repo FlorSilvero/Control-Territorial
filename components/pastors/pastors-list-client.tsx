@@ -128,7 +128,17 @@ export function PastorsListClient({
         </div>
 
         {/* Tenure Filter */}
-        <Select value={tenureFilter} onValueChange={setTenureFilter}>
+        <Select
+          value={tenureFilter}
+          onValueChange={setTenureFilter}
+          items={{
+            all: "Todo tiempo en distrito",
+            "lt-1": "Menos de 1 año",
+            "1-3": "1 a 3 años",
+            "3-5": "3 a 5 años",
+            "gt-5": "Más de 5 años",
+          }}
+        >
           <SelectTrigger className="w-full sm:w-52">
             <Clock className="size-3.5 mr-2 text-muted-foreground" />
             <SelectValue placeholder="Tiempo en distrito" />
@@ -143,7 +153,15 @@ export function PastorsListClient({
         </Select>
 
         {/* Sort Select */}
-        <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+        <Select
+          value={sortBy}
+          onValueChange={(v) => setSortBy(v as any)}
+          items={{
+            name: "Ordenar por Apellido",
+            "tenure-desc": "Mayor antigüedad",
+            "tenure-asc": "Menor antigüedad",
+          }}
+        >
           <SelectTrigger className="w-full sm:w-48">
             <ArrowUpDown className="size-3.5 mr-2 text-muted-foreground" />
             <SelectValue placeholder="Ordenar por" />

@@ -81,6 +81,71 @@ export function assignmentForDate(
   return null
 }
 
+/**
+ * Attributes every row's baptismCount to the assignment window(s) that were
+ * active while it happened, returning a Map<assignmentId, baptisms>.
+ *
+ * MONTHLY rows pin down an exact month, so they go entirely to whichever
+ * assignment covers that month (assignments for a district never overlap).
+ *
+ * ANNUAL rows ("Cierre de año") only say a whole calendar year's total — they
+ * don't say when in the year the baptisms happened. Picking a single
+ * representative date (e.g. Dec 31) to look up "the" assignment breaks as
+ * soon as a district changed pastors mid-year: the record falls outside the
+ * assignment that actually covered most of the year and reports 0 for it,
+ * even though the church/district totals (which just sum every row) still
+ * show the full count. Splitting proportionally by the number of days each
+ * assignment was active within that year keeps every view consistent: the
+ * per-assignment amounts always add back up to the row's original total.
+ */
+export function attributeBaptisms(
+  rows: StatRow[],
+  windows: AssignmentWindow[],
+): Map<string, number> {
+  const result = new Map<string, number>()
+  const add = (id: string, amount: number) => {
+    if (amount === 0) return
+    result.set(id, (result.get(id) ?? 0) + amount)
+  }
+
+  for (const row of rows) {
+    if (row.baptismCount === 0) continue
+
+    if (row.period === "MONTHLY" && row.month) {
+      const a = assignmentForDate(windows, new Date(row.year, row.month - 1, 15))
+      if (a) add(a.id, row.baptismCount)
+      continue
+    }
+
+    // ANNUAL: prorate across every assignment overlapping the year, by days.
+    const yearStart = new Date(row.year, 0, 1).getTime()
+    const yearEnd = (row.year === CURRENT_YEAR ? new Date() : new Date(row.year, 11, 31)).getTime()
+
+    const overlaps = windows
+      .map((w) => {
+        const start = Math.max(w.startDate.getTime(), yearStart)
+        const end = Math.min(w.endDate ? w.endDate.getTime() : yearEnd, yearEnd)
+        return { id: w.id, days: end - start }
+      })
+      .filter((o) => o.days > 0)
+
+    const totalDays = overlaps.reduce((acc, o) => acc + o.days, 0)
+    if (totalDays <= 0) continue
+
+    let distributed = 0
+    overlaps.forEach((o, idx) => {
+      const isLast = idx === overlaps.length - 1
+      const amount = isLast
+        ? row.baptismCount - distributed
+        : Math.round((o.days / totalDays) * row.baptismCount)
+      distributed += amount
+      add(o.id, amount)
+    })
+  }
+
+  return result
+}
+
 export function pastorLabel(
   p?: { firstName: string; lastName: string } | null,
 ): string {

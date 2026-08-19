@@ -47,7 +47,7 @@ async function main() {
   await prisma.pastor.deleteMany({ where: { organizationId: org.id } })
 
   // ---- Districts ----
-  const districtNames = ["Distrito Centro", "Distrito Norte", "Distrito Sur", "Distrito Este"]
+  const districtNames = ["Distrito Centro", "Distrito Norte"]
   const districts = []
   for (const name of districtNames) {
     districts.push(
@@ -61,9 +61,6 @@ async function main() {
   const pastorData = [
     ["Juan", "Pérez"],
     ["Carlos", "Gómez"],
-    ["Miguel", "Rodríguez"],
-    ["Andrés", "López"],
-    ["Roberto", "Fernández"],
   ]
   const pastors = []
   for (const [firstName, lastName] of pastorData) {
@@ -79,64 +76,32 @@ async function main() {
     )
   }
 
-  // ---- Pastor assignments (temporal history) ----
-  // Pastor Juan: Centro (2021-2023) -> Norte (2023-actualidad)
+  // ---- Pastor assignments ----
+  // Pastor Juan: Centro
   await prisma.pastorAssignment.create({
     data: {
       organizationId: org.id,
       pastorId: pastors[0].id,
       districtId: districts[0].id,
-      startDate: new Date("2021-01-01"),
-      endDate: new Date("2023-06-30"),
+      startDate: new Date("2023-07-01"),
+      endDate: null,
     },
   })
+  // Pastor Carlos: Norte
   await prisma.pastorAssignment.create({
     data: {
       organizationId: org.id,
-      pastorId: pastors[0].id,
+      pastorId: pastors[1].id,
       districtId: districts[1].id,
       startDate: new Date("2023-07-01"),
       endDate: null,
     },
   })
-  // Pastor Carlos: took over Centro after Juan left
-  await prisma.pastorAssignment.create({
-    data: {
-      organizationId: org.id,
-      pastorId: pastors[1].id,
-      districtId: districts[0].id,
-      startDate: new Date("2023-07-01"),
-      endDate: null,
-    },
-  })
-  // Pastor Miguel: Sur
-  await prisma.pastorAssignment.create({
-    data: {
-      organizationId: org.id,
-      pastorId: pastors[2].id,
-      districtId: districts[2].id,
-      startDate: new Date("2022-03-01"),
-      endDate: null,
-    },
-  })
-  // Pastor Andrés: Este
-  await prisma.pastorAssignment.create({
-    data: {
-      organizationId: org.id,
-      pastorId: pastors[3].id,
-      districtId: districts[3].id,
-      startDate: new Date("2024-01-01"),
-      endDate: null,
-    },
-  })
-  // Pastor Roberto: unassigned (available)
 
   // ---- Churches ----
   const churchesByDistrict: Record<string, string[]> = {
     [districts[0].id]: ["Iglesia Central", "Iglesia Emmanuel", "Iglesia Betel"],
-    [districts[1].id]: ["Iglesia Norte", "Iglesia Esperanza"],
-    [districts[2].id]: ["Iglesia Sur", "Iglesia Gracia", "Iglesia Sion", "Iglesia Filadelfia"],
-    [districts[3].id]: ["Iglesia Este", "Iglesia Nueva Vida"],
+    [districts[1].id]: ["Iglesia Norte", "Iglesia Esperanza", "Iglesia Nueva Vida"],
   }
 
   const churches = []

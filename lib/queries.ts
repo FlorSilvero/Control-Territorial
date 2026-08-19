@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import {
   computeChurchStats,
   assignmentForDate,
-  representativeDate,
+  attributeBaptisms,
   CURRENT_YEAR,
   CURRENT_MONTH,
   type StatRow,
@@ -347,7 +347,10 @@ export async function getPastorDetail(orgId: string, id: string) {
         include: {
           district: {
             include: {
-              churches: { include: { statistics: true } },
+              churches: { where: { archivedAt: null }, include: { statistics: true } },
+              // Every assignment for the district (any pastor), needed to
+              // correctly split whole-year statistic rows across tenures.
+              assignments: true,
             },
           },
         },
@@ -359,21 +362,24 @@ export async function getPastorDetail(orgId: string, id: string) {
 
   const assignments = pastor.assignments.map((a) => {
     const rows: StatRow[] = a.district.churches.flatMap((c) => c.statistics as StatRow[])
-    // Baptisms attributable to THIS assignment window.
-    let baptisms = 0
+    const districtWindows: AssignmentWindow[] = a.district.assignments.map((w) => ({
+      id: w.id,
+      pastorId: w.pastorId,
+      districtId: w.districtId,
+      startDate: w.startDate,
+      endDate: w.endDate,
+    }))
+
+    const baptisms = attributeBaptisms(rows, districtWindows).get(a.id) ?? 0
+
+    // Monthly breakdown (active tenure only): MONTHLY rows pin an exact
+    // month, so a direct window lookup is precise here (no proration needed).
     const monthly: { month: number; baptisms: number }[] = []
     for (let m = 1; m <= 12; m++) monthly.push({ month: m, baptisms: 0 })
-
     for (const r of rows) {
-      const date = representativeDate(r)
-      const inWindow =
-        a.startDate.getTime() <= date.getTime() &&
-        (a.endDate == null || a.endDate.getTime() >= date.getTime())
-      if (!inWindow) continue
-      baptisms += r.baptismCount
-      if (r.year === CURRENT_YEAR && r.month) {
-        monthly[r.month - 1].baptisms += r.baptismCount
-      }
+      if (r.year !== CURRENT_YEAR || !r.month) continue
+      const owner = assignmentForDate(districtWindows, new Date(r.year, r.month - 1, 15))
+      if (owner?.id === a.id) monthly[r.month - 1].baptisms += r.baptismCount
     }
 
     return {
@@ -484,31 +490,47 @@ export async function getDashboardData(orgId: string) {
 }
 
 async function getPastorBaptismRanking(orgId: string) {
-  const pastors = await prisma.pastor.findMany({
-    where: { organizationId: orgId, archivedAt: null },
+  // Walk district-by-district so each statistic row is attributed once,
+  // against the *complete* set of assignments that overlap it — matching
+  // getPastorDetail's logic exactly, so the two views always agree.
+  const districts = await prisma.district.findMany({
+    where: { organizationId: orgId },
     include: {
-      assignments: {
-        include: { district: { include: { churches: { include: { statistics: true } } } } },
-      },
+      churches: { where: { archivedAt: null }, include: { statistics: true } },
+      assignments: { include: { pastor: true } },
     },
   })
 
-  const ranked = pastors.map((p) => {
-    let baptisms = 0
-    for (const a of p.assignments) {
-      const rows: StatRow[] = a.district.churches.flatMap((c) => c.statistics as StatRow[])
-      for (const r of rows) {
-        const date = representativeDate(r)
-        const inWindow =
-          a.startDate.getTime() <= date.getTime() &&
-          (a.endDate == null || a.endDate.getTime() >= date.getTime())
-        if (inWindow) baptisms += r.baptismCount
-      }
-    }
-    return { name: `${p.firstName} ${p.lastName}`, baptisms }
-  })
+  const totals = new Map<string, { name: string; baptisms: number; archived: boolean }>()
 
-  return ranked.sort((a, b) => b.baptisms - a.baptisms).slice(0, 5)
+  for (const d of districts) {
+    const rows: StatRow[] = d.churches.flatMap((c) => c.statistics as StatRow[])
+    const windows: AssignmentWindow[] = d.assignments.map((a) => ({
+      id: a.id,
+      pastorId: a.pastorId,
+      districtId: a.districtId,
+      startDate: a.startDate,
+      endDate: a.endDate,
+    }))
+    const attributed = attributeBaptisms(rows, windows)
+
+    for (const a of d.assignments) {
+      const amount = attributed.get(a.id) ?? 0
+      if (amount === 0) continue
+      const existing = totals.get(a.pastorId)
+      totals.set(a.pastorId, {
+        name: `${a.pastor.firstName} ${a.pastor.lastName}`,
+        baptisms: (existing?.baptisms ?? 0) + amount,
+        archived: a.pastor.archivedAt != null,
+      })
+    }
+  }
+
+  return Array.from(totals.values())
+    .filter((p) => !p.archived)
+    .sort((a, b) => b.baptisms - a.baptisms)
+    .slice(0, 5)
+    .map(({ name, baptisms }) => ({ name, baptisms }))
 }
 
 // ---------------------------------------------------------------------------
