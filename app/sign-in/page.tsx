@@ -15,7 +15,7 @@ export default async function SignInPage() {
           <div className="flex size-9 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
             <Church className="size-5" />
           </div>
-          <span className="font-serif text-lg font-semibold">Gestión Pastoral</span>
+          <span className="font-serif text-lg font-semibold">Gestión Distrital</span>
         </div>
         <div className="max-w-md">
           <h1 className="text-balance font-serif text-3xl font-medium leading-tight">
@@ -38,7 +38,7 @@ export default async function SignInPage() {
             <div className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <Church className="size-5" />
             </div>
-            <span className="font-serif text-lg font-semibold">Gestión Pastoral</span>
+            <span className="font-serif text-lg font-semibold">Gestión Distrital</span>
           </div>
           <div className="mb-6">
             <h2 className="font-serif text-2xl font-medium">Iniciar sesión</h2>

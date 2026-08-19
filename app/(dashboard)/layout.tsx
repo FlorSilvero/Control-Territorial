@@ -22,7 +22,7 @@ export default async function DashboardLayout({
             <Church className="size-4" />
           </div>
           <Link href="/" className="font-serif text-lg font-bold tracking-tight">
-            Gestión Pastoral
+            Gestión Distrital
           </Link>
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-6">
@@ -52,7 +52,7 @@ export default async function DashboardLayout({
                   <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                     <Church className="size-4" />
                   </div>
-                  <SheetTitle className="font-serif text-lg font-bold">Gestión Pastoral</SheetTitle>
+                  <SheetTitle className="font-serif text-lg font-bold">Gestión Distrital</SheetTitle>
                 </SheetHeader>
                 <div className="px-4 py-6">
                   <Nav />
@@ -61,7 +61,7 @@ export default async function DashboardLayout({
             </Sheet>
 
             <Link href="/" className="font-serif text-lg font-bold md:hidden">
-              Gestión Pastoral
+              Gestión Distrital
             </Link>
           </div>
 

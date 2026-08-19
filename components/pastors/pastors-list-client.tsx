@@ -108,10 +108,6 @@ export function PastorsListClient({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={() => openAssign()} className="gap-2 shrink-0">
-            <UserCheck className="size-4" />
-            Asignar a distrito
-          </Button>
           <Button onClick={() => setCreateOpen(true)} className="gap-2 shrink-0">
             <Plus className="size-4" />
             Crear pastor

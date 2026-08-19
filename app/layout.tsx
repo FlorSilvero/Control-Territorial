@@ -15,7 +15,7 @@ const fraunces = Fraunces({
 })
 
 export const metadata: Metadata = {
-  title: 'Gestión Pastoral',
+  title: 'Gestión Distrital',
   description:
     'Gestión de distritos, iglesias, pastores y estadísticas históricas de bautismos y miembros.',
   generator: 'v0.app',
