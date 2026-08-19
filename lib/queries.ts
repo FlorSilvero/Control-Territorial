@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import {
   computeChurchStats,
   assignmentForDate,
+  assignmentForDateOrEarliest,
   attributeBaptisms,
   CURRENT_YEAR,
   CURRENT_MONTH,
@@ -374,11 +375,13 @@ export async function getPastorDetail(orgId: string, id: string) {
 
     // Monthly breakdown (active tenure only): MONTHLY rows pin an exact
     // month, so a direct window lookup is precise here (no proration needed).
+    // Falls back to the earliest tenure for pre-history rows, same as
+    // attributeBaptisms above, so this breakdown always sums back to `baptisms`.
     const monthly: { month: number; baptisms: number }[] = []
     for (let m = 1; m <= 12; m++) monthly.push({ month: m, baptisms: 0 })
     for (const r of rows) {
       if (r.year !== CURRENT_YEAR || !r.month) continue
-      const owner = assignmentForDate(districtWindows, new Date(r.year, r.month - 1, 15))
+      const owner = assignmentForDateOrEarliest(districtWindows, new Date(r.year, r.month - 1, 15))
       if (owner?.id === a.id) monthly[r.month - 1].baptisms += r.baptismCount
     }
 

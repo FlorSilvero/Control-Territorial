@@ -3,6 +3,7 @@ import {
   computeChurchStats,
   representativeDate,
   assignmentForDate,
+  assignmentForDateOrEarliest,
   attributeBaptisms,
   CURRENT_YEAR,
   type StatRow,
@@ -83,6 +84,25 @@ describe("assignmentForDate", () => {
   })
 })
 
+describe("assignmentForDateOrEarliest", () => {
+  const windows = [
+    window("a1", new Date(2023, 0, 1), new Date(2023, 5, 30)),
+    window("a2", new Date(2023, 6, 1), null),
+  ]
+
+  it("behaves like assignmentForDate when a window covers the date", () => {
+    expect(assignmentForDateOrEarliest(windows, new Date(2023, 2, 1))?.id).toBe("a1")
+  })
+
+  it("falls back to the earliest tenure for a date before every window", () => {
+    expect(assignmentForDateOrEarliest(windows, new Date(2020, 0, 1))?.id).toBe("a1")
+  })
+
+  it("still returns null with no assignments at all", () => {
+    expect(assignmentForDateOrEarliest([], new Date(2020, 0, 1))).toBeNull()
+  })
+})
+
 // ---------------------------------------------------------------------------
 // attributeBaptisms: this is where the reported bug lived.
 // ---------------------------------------------------------------------------
@@ -155,10 +175,27 @@ describe("attributeBaptisms", () => {
     expect(result.get("a3")).toBeGreaterThanOrEqual(9)
   })
 
-  it("ignores rows that fall in years no assignment covers", () => {
+  it("attributes pre-history rows (before any known assignment) to the earliest tenure", () => {
+    // No one else is on record as having managed this district before 2024,
+    // so a 2020 record can't belong to some earlier pastor — it belongs to a1.
     const windows = [window("a1", new Date(2024, 0, 1), null)]
     const result = attributeBaptisms([annual(2020, 15)], windows)
-    expect(result.size).toBe(0)
+    expect(result.get("a1")).toBe(15)
+  })
+
+  // Regression test for the exact issue reported: a brand-new district and a
+  // brand-new pastor assignment (created "today"), where a MONTHLY record for
+  // the current month was entered before the assignment's startDate (e.g. the
+  // assignment starts on the 19th, but the record is pinned to the 15th of
+  // the same month). The old code required the record's representative date
+  // to fall on/after the assignment's startDate, so it matched no assignment
+  // at all and silently reported 0 for the pastor while the district total
+  // (which just sums every row) still showed the full count.
+  it("attributes a same-month record entered before a brand-new assignment's start date", () => {
+    const windows = [window("elvio", new Date(2026, 7, 19), null)] // Aug 19, 2026
+    const rows = [monthly(2026, 8, 5), monthly(2026, 7, 5)] // Aug (pinned 15th) + Jul
+    const result = attributeBaptisms(rows, windows)
+    expect(result.get("elvio")).toBe(10)
   })
 
   it("skips zero-baptism rows without creating spurious entries", () => {

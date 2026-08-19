@@ -82,6 +82,30 @@ export function assignmentForDate(
 }
 
 /**
+ * Same lookup as assignmentForDate, but a date before every known assignment
+ * falls back to whichever tenure started earliest, instead of matching no
+ * one. Used for attributing baptisms: statistics recorded for a date before
+ * any assignment on record ever started can't belong to some earlier pastor
+ * (there isn't one on record), so they belong to the earliest tenure rather
+ * than vanishing from that pastor's totals while district/church totals
+ * still count them.
+ */
+export function assignmentForDateOrEarliest(
+  assignments: AssignmentWindow[],
+  date: Date,
+): AssignmentWindow | null {
+  const direct = assignmentForDate(assignments, date)
+  if (direct) return direct
+
+  const earliest = assignments.reduce<AssignmentWindow | null>(
+    (e, a) => (!e || a.startDate.getTime() < e.startDate.getTime() ? a : e),
+    null,
+  )
+  if (earliest && date.getTime() < earliest.startDate.getTime()) return earliest
+  return null
+}
+
+/**
  * Attributes every row's baptismCount to the assignment window(s) that were
  * active while it happened, returning a Map<assignmentId, baptisms>.
  *
@@ -108,11 +132,22 @@ export function attributeBaptisms(
     result.set(id, (result.get(id) ?? 0) + amount)
   }
 
+  // Earliest-known tenure for this district, used below to catch "pre-history"
+  // rows: statistics recorded for a date before any assignment on record ever
+  // started. Nobody else could have earned them, so rather than silently
+  // dropping them (and making the pastor's total disappear while the
+  // district/church totals still show them), they belong to whoever's tenure
+  // started earliest.
+  const earliest = windows.reduce<AssignmentWindow | null>(
+    (e, w) => (!e || w.startDate.getTime() < e.startDate.getTime() ? w : e),
+    null,
+  )
+
   for (const row of rows) {
     if (row.baptismCount === 0) continue
 
     if (row.period === "MONTHLY" && row.month) {
-      const a = assignmentForDate(windows, new Date(row.year, row.month - 1, 15))
+      const a = assignmentForDateOrEarliest(windows, new Date(row.year, row.month - 1, 15))
       if (a) add(a.id, row.baptismCount)
       continue
     }
@@ -130,7 +165,12 @@ export function attributeBaptisms(
       .filter((o) => o.days > 0)
 
     const totalDays = overlaps.reduce((acc, o) => acc + o.days, 0)
-    if (totalDays <= 0) continue
+    if (totalDays <= 0) {
+      if (earliest && yearEnd <= earliest.startDate.getTime()) {
+        add(earliest.id, row.baptismCount)
+      }
+      continue
+    }
 
     let distributed = 0
     overlaps.forEach((o, idx) => {
