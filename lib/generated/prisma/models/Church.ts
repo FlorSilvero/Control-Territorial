@@ -596,7 +596,6 @@ export type ChurchCreateOrConnectWithoutOrganizationInput = {
 
 export type ChurchCreateManyOrganizationInputEnvelope = {
   data: Prisma.ChurchCreateManyOrganizationInput | Prisma.ChurchCreateManyOrganizationInput[]
-  skipDuplicates?: boolean
 }
 
 export type ChurchUpsertWithWhereUniqueWithoutOrganizationInput = {
@@ -667,7 +666,6 @@ export type ChurchCreateOrConnectWithoutDistrictInput = {
 
 export type ChurchCreateManyDistrictInputEnvelope = {
   data: Prisma.ChurchCreateManyDistrictInput | Prisma.ChurchCreateManyDistrictInput[]
-  skipDuplicates?: boolean
 }
 
 export type ChurchUpsertWithWhereUniqueWithoutDistrictInput = {
@@ -1667,7 +1665,6 @@ export type ChurchCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * The data used to create many Churches.
    */
   data: Prisma.ChurchCreateManyInput | Prisma.ChurchCreateManyInput[]
-  skipDuplicates?: boolean
 }
 
 /**
@@ -1686,7 +1683,6 @@ export type ChurchCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensio
    * The data used to create many Churches.
    */
   data: Prisma.ChurchCreateManyInput | Prisma.ChurchCreateManyInput[]
-  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

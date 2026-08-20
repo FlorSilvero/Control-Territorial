@@ -1,5 +1,5 @@
 // Pastoral districts management — data model
-// Stack: Prisma 7 (prisma-client generator + pg driver adapter) on Neon Postgres
+// Stack: Prisma 7 (prisma-client generator + better-sqlite3 driver adapter) on local SQLite
 //
 // Design principles:
 // - Multi-tenant from day 1: organizationId on every domain entity.
@@ -14,7 +14,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 // ---------------------------------------------------------------------------

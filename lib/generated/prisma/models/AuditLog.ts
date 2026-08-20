@@ -446,7 +446,6 @@ export type AuditLogCreateOrConnectWithoutOrganizationInput = {
 
 export type AuditLogCreateManyOrganizationInputEnvelope = {
   data: Prisma.AuditLogCreateManyOrganizationInput | Prisma.AuditLogCreateManyOrganizationInput[]
-  skipDuplicates?: boolean
 }
 
 export type AuditLogUpsertWithWhereUniqueWithoutOrganizationInput = {
@@ -1259,7 +1258,6 @@ export type AuditLogCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * The data used to create many AuditLogs.
    */
   data: Prisma.AuditLogCreateManyInput | Prisma.AuditLogCreateManyInput[]
-  skipDuplicates?: boolean
 }
 
 /**
@@ -1278,7 +1276,6 @@ export type AuditLogCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extens
    * The data used to create many AuditLogs.
    */
   data: Prisma.AuditLogCreateManyInput | Prisma.AuditLogCreateManyInput[]
-  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

@@ -1,13 +1,9 @@
 import { config } from "dotenv"
 config({ path: ".env.local" })
-import { PrismaClient } from "../lib/generated/prisma/client"
-import { PrismaPg } from "@prisma/adapter-pg"
-import { Pool } from "pg"
+import { createPrismaClient } from "../lib/prisma"
 import bcrypt from "bcryptjs"
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-const adapter = new PrismaPg(pool)
-const prisma = new PrismaClient({ adapter })
+const prisma = createPrismaClient()
 
 const CURRENT_YEAR = new Date().getFullYear()
 
@@ -47,7 +43,7 @@ async function main() {
   await prisma.pastor.deleteMany({ where: { organizationId: org.id } })
 
   // ---- Districts ----
-  const districtNames = ["Distrito Centro", "Distrito Norte"]
+  const districtNames = ["Distrito Centro", "Distrito Norte", "Distrito Sur"]
   const districts = []
   for (const name of districtNames) {
     districts.push(
@@ -61,6 +57,7 @@ async function main() {
   const pastorData = [
     ["Juan", "Pérez"],
     ["Carlos", "Gómez"],
+    ["Marta", "Sosa"],
   ]
   const pastors = []
   for (const [firstName, lastName] of pastorData) {
@@ -97,11 +94,22 @@ async function main() {
       endDate: null,
     },
   })
+  // Pastor Marta: Sur
+  await prisma.pastorAssignment.create({
+    data: {
+      organizationId: org.id,
+      pastorId: pastors[2].id,
+      districtId: districts[2].id,
+      startDate: new Date("2023-07-01"),
+      endDate: null,
+    },
+  })
 
   // ---- Churches ----
   const churchesByDistrict: Record<string, string[]> = {
     [districts[0].id]: ["Iglesia Central", "Iglesia Emmanuel", "Iglesia Betel"],
     [districts[1].id]: ["Iglesia Norte", "Iglesia Esperanza", "Iglesia Nueva Vida"],
+    [districts[2].id]: ["Iglesia Sur", "Iglesia Getsemaní", "Iglesia Filadelfia"],
   }
 
   const churches = []

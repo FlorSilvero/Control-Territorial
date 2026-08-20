@@ -233,7 +233,6 @@ export async function listChurches(
       organizationId: orgId,
       archivedAt: opts.archived ? { not: null } : null,
       districtId: opts.districtId || undefined,
-      name: opts.search ? { contains: opts.search, mode: "insensitive" } : undefined,
     },
     include: {
       statistics: true,
@@ -246,7 +245,10 @@ export async function listChurches(
     orderBy: { name: "asc" },
   })
 
-  return churches.map((c) => {
+  const term = opts.search ? normalizeText(opts.search) : null
+  const filtered = term ? churches.filter((c) => normalizeText(c.name).includes(term)) : churches
+
+  return filtered.map((c) => {
     const s = computeChurchStats(c.statistics as StatRow[])
     const current = c.district.assignments[0]
     return {

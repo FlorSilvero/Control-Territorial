@@ -629,7 +629,6 @@ export type StatisticRecordCreateOrConnectWithoutChurchInput = {
 
 export type StatisticRecordCreateManyChurchInputEnvelope = {
   data: Prisma.StatisticRecordCreateManyChurchInput | Prisma.StatisticRecordCreateManyChurchInput[]
-  skipDuplicates?: boolean
 }
 
 export type StatisticRecordUpsertWithWhereUniqueWithoutChurchInput = {
@@ -1486,7 +1485,6 @@ export type StatisticRecordCreateManyArgs<ExtArgs extends runtime.Types.Extensio
    * The data used to create many StatisticRecords.
    */
   data: Prisma.StatisticRecordCreateManyInput | Prisma.StatisticRecordCreateManyInput[]
-  skipDuplicates?: boolean
 }
 
 /**
@@ -1505,7 +1503,6 @@ export type StatisticRecordCreateManyAndReturnArgs<ExtArgs extends runtime.Types
    * The data used to create many StatisticRecords.
    */
   data: Prisma.StatisticRecordCreateManyInput | Prisma.StatisticRecordCreateManyInput[]
-  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

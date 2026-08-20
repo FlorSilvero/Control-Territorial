@@ -544,7 +544,6 @@ export type PastorAssignmentCreateOrConnectWithoutDistrictInput = {
 
 export type PastorAssignmentCreateManyDistrictInputEnvelope = {
   data: Prisma.PastorAssignmentCreateManyDistrictInput | Prisma.PastorAssignmentCreateManyDistrictInput[]
-  skipDuplicates?: boolean
 }
 
 export type PastorAssignmentUpsertWithWhereUniqueWithoutDistrictInput = {
@@ -610,7 +609,6 @@ export type PastorAssignmentCreateOrConnectWithoutPastorInput = {
 
 export type PastorAssignmentCreateManyPastorInputEnvelope = {
   data: Prisma.PastorAssignmentCreateManyPastorInput | Prisma.PastorAssignmentCreateManyPastorInput[]
-  skipDuplicates?: boolean
 }
 
 export type PastorAssignmentUpsertWithWhereUniqueWithoutPastorInput = {
@@ -1485,7 +1483,6 @@ export type PastorAssignmentCreateManyArgs<ExtArgs extends runtime.Types.Extensi
    * The data used to create many PastorAssignments.
    */
   data: Prisma.PastorAssignmentCreateManyInput | Prisma.PastorAssignmentCreateManyInput[]
-  skipDuplicates?: boolean
 }
 
 /**
@@ -1504,7 +1501,6 @@ export type PastorAssignmentCreateManyAndReturnArgs<ExtArgs extends runtime.Type
    * The data used to create many PastorAssignments.
    */
   data: Prisma.PastorAssignmentCreateManyInput | Prisma.PastorAssignmentCreateManyInput[]
-  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */
