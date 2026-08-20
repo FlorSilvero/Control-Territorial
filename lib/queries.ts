@@ -262,6 +262,7 @@ export async function listChurches(
       currentMembers: s.currentMembers,
       baptismsThisYear: s.baptismsThisYear,
       baptismsTotal: s.baptismsTotal,
+      membersTrend: s.membersTrend,
     }
   })
 }

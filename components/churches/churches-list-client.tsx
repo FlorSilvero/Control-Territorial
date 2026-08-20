@@ -14,8 +14,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ChurchDialog } from "@/components/churches/church-dialog"
-import { normalizeText } from "@/lib/utils"
-import { Church, MapPinned, Users, Waves, UserCheck, Plus, Search } from "lucide-react"
+import { normalizeText, cn } from "@/lib/utils"
+import type { MembersTrend } from "@/lib/stats"
+import { Church, MapPinned, Users, Waves, UserCheck, Plus, Search, TrendingUp, TrendingDown, Minus } from "lucide-react"
 
 type ChurchItem = {
   id: string
@@ -25,6 +26,13 @@ type ChurchItem = {
   currentMembers: number
   baptismsThisYear: number
   baptismsTotal: number
+  membersTrend: MembersTrend | null
+}
+
+const trendStyles: Record<MembersTrend, { box: string; icon: typeof TrendingUp }> = {
+  up: { box: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400", icon: TrendingUp },
+  down: { box: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-400", icon: TrendingDown },
+  flat: { box: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400", icon: Minus },
 }
 
 export function ChurchesListClient({
@@ -147,12 +155,24 @@ export function ChurchesListClient({
 
                     {/* Stats */}
                     <div className="grid grid-cols-2 gap-2 text-center">
-                      <div className="rounded-md border p-2.5">
-                        <div className="flex justify-center text-muted-foreground mb-1">
-                          <Users className="size-4" />
+                      <div
+                        className={cn(
+                          "rounded-md border p-2.5",
+                          c.membersTrend && trendStyles[c.membersTrend].box,
+                        )}
+                      >
+                        <div className="flex justify-center items-center gap-1 mb-1">
+                          {c.membersTrend ? (
+                            (() => {
+                              const TrendIcon = trendStyles[c.membersTrend].icon
+                              return <TrendIcon className="size-4" />
+                            })()
+                          ) : (
+                            <Users className="size-4 text-muted-foreground" />
+                          )}
                         </div>
                         <div className="font-serif font-bold text-lg">{c.currentMembers}</div>
-                        <div className="text-[11px] text-muted-foreground">Miembros actuales</div>
+                        <div className="text-[11px] opacity-80">Miembros actuales</div>
                       </div>
 
                       <div className="rounded-md border p-2.5">

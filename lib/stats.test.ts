@@ -51,7 +51,43 @@ describe("computeChurchStats", () => {
 
   it("returns zeros for an empty history", () => {
     const stats = computeChurchStats([])
-    expect(stats).toEqual({ currentMembers: 0, baptismsThisYear: 0, baptismsTotal: 0 })
+    expect(stats).toEqual({
+      currentMembers: 0,
+      baptismsThisYear: 0,
+      baptismsTotal: 0,
+      startOfYearMembers: null,
+      membersTrend: null,
+    })
+  })
+
+  it("takes startOfYearMembers from the prior year's most recent snapshot", () => {
+    const rows: StatRow[] = [
+      annual(CURRENT_YEAR - 1, 12, 90),
+      monthly(CURRENT_YEAR, 1, 4, 95),
+      monthly(CURRENT_YEAR, 2, 3, 108),
+    ]
+    const stats = computeChurchStats(rows)
+    expect(stats.startOfYearMembers).toBe(90)
+    expect(stats.membersTrend).toBe("up")
+  })
+
+  it("falls back to the earliest current-year row when there's no prior-year data", () => {
+    const rows: StatRow[] = [monthly(CURRENT_YEAR, 1, 4, 100), monthly(CURRENT_YEAR, 3, 2, 90)]
+    const stats = computeChurchStats(rows)
+    expect(stats.startOfYearMembers).toBe(100)
+    expect(stats.membersTrend).toBe("down")
+  })
+
+  it("reports a flat trend when membership hasn't changed since the start of the year", () => {
+    const rows: StatRow[] = [annual(CURRENT_YEAR - 1, 0, 90), monthly(CURRENT_YEAR, 1, 0, 90)]
+    const stats = computeChurchStats(rows)
+    expect(stats.membersTrend).toBe("flat")
+  })
+
+  it("has no trend when there's no data at all to establish a baseline", () => {
+    const stats = computeChurchStats([])
+    expect(stats.startOfYearMembers).toBeNull()
+    expect(stats.membersTrend).toBeNull()
   })
 })
 

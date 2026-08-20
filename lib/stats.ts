@@ -34,10 +34,16 @@ function sortKey(r: StatRow): number {
   return r.year * 13 + (r.month ?? 0)
 }
 
+export type MembersTrend = "up" | "down" | "flat"
+
 export type ChurchStats = {
   currentMembers: number
   baptismsThisYear: number
   baptismsTotal: number
+  /** Member count snapshot from before this year started, or null if there's no prior data. */
+  startOfYearMembers: number | null
+  /** How currentMembers compares to startOfYearMembers; null when there's nothing to compare against. */
+  membersTrend: MembersTrend | null
 }
 
 export function computeChurchStats(rows: StatRow[]): ChurchStats {
@@ -51,11 +57,47 @@ export function computeChurchStats(rows: StatRow[]): ChurchStats {
     if (r.year === CURRENT_YEAR) baptismsThisYear += r.baptismCount
   }
 
+  const currentMembers = latest?.memberCount ?? 0
+  const startOfYearMembers = computeStartOfYearMembers(rows)
+  const membersTrend =
+    startOfYearMembers === null
+      ? null
+      : currentMembers > startOfYearMembers
+        ? "up"
+        : currentMembers < startOfYearMembers
+          ? "down"
+          : "flat"
+
   return {
-    currentMembers: latest?.memberCount ?? 0,
+    currentMembers,
     baptismsThisYear,
     baptismsTotal,
+    startOfYearMembers,
+    membersTrend,
   }
+}
+
+/**
+ * Member count as of the start of the current year: the closing snapshot
+ * from the year before (its ANNUAL row, or whichever record is most recent
+ * if that's missing). Falls back to the earliest record within the current
+ * year itself when there's no data from before it, and to null when there's
+ * no data at all to establish a baseline.
+ */
+export function computeStartOfYearMembers(rows: StatRow[]): number | null {
+  const priorYearRows = rows.filter((r) => r.year < CURRENT_YEAR)
+  if (priorYearRows.length > 0) {
+    const latestPrior = priorYearRows.reduce((a, b) => (sortKey(b) > sortKey(a) ? b : a))
+    return latestPrior.memberCount
+  }
+
+  const currentYearRows = rows.filter((r) => r.year === CURRENT_YEAR)
+  if (currentYearRows.length > 0) {
+    const earliestCurrent = currentYearRows.reduce((a, b) => (sortKey(b) < sortKey(a) ? b : a))
+    return earliestCurrent.memberCount
+  }
+
+  return null
 }
 
 /** Representative date used to attribute a stat record to a pastor's tenure. */
