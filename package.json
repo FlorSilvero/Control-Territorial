@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "seed": "tsx prisma/seed.ts",
+    "backup": "tsx prisma/backup.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "electron:dev": "electron electron/main-dev.js",

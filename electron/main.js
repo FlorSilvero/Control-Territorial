@@ -6,6 +6,8 @@ const net = require("node:net")
 
 let serverProcess = null
 let mainWindow = null
+let serverPort = null
+let quitting = false
 
 function getFreePort() {
   return new Promise((resolve, reject) => {
@@ -27,6 +29,27 @@ function ensureDatabase() {
   return dbPath
 }
 
+function backupDir() {
+  return path.join(app.getPath("userData"), "backups")
+}
+
+async function runBackup() {
+  if (!serverPort) return
+  const { AUTH_SECRET } = require("./generated-config.js")
+  try {
+    const res = await fetch(`http://127.0.0.1:${serverPort}/api/backup`, {
+      method: "POST",
+      headers: { "x-backup-secret": AUTH_SECRET },
+      signal: AbortSignal.timeout(8000),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const { filePath } = await res.json()
+    console.log(`[backup] saved -> ${filePath}`)
+  } catch (err) {
+    console.error("[backup] failed:", err)
+  }
+}
+
 function startServer() {
   return new Promise(async (resolve, reject) => {
     const port = await getFreePort()
@@ -44,6 +67,7 @@ function startServer() {
         HOSTNAME: "127.0.0.1",
         AUTH_TRUST_HOST: "true",
         DATABASE_URL: `file:${dbPath}`,
+        BACKUP_DIR: backupDir(),
         AUTH_SECRET,
       },
       cwd: appDir,
@@ -74,6 +98,7 @@ function startServer() {
 
 async function createWindow() {
   const port = await startServer()
+  serverPort = port
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -83,6 +108,7 @@ async function createWindow() {
     },
   })
   await mainWindow.loadURL(`http://127.0.0.1:${port}`)
+  runBackup()
 }
 
 app.whenReady().then(() => {
@@ -96,9 +122,16 @@ app.on("window-all-closed", () => {
   app.quit()
 })
 
-app.on("before-quit", () => {
-  if (serverProcess) {
-    serverProcess.kill()
-    serverProcess = null
-  }
+app.on("before-quit", (event) => {
+  if (quitting) return
+  quitting = true
+  event.preventDefault()
+
+  runBackup().finally(() => {
+    if (serverProcess) {
+      serverProcess.kill()
+      serverProcess = null
+    }
+    app.quit()
+  })
 })

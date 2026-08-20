@@ -31,6 +31,11 @@ prisma/*.db
 prisma/*.db-journal
 
 # ========================
+# Backups (contain user data — never commit)
+# ========================
+backups/
+
+# ========================
 # Logs
 # ========================
 npm-debug.log*

@@ -11,7 +11,10 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const isAuthed = !!req.auth?.user
 
-  const isPublic = pathname.startsWith("/sign-in") || pathname.startsWith("/api/auth")
+  // /api/backup guards itself with a shared secret (see app/api/backup/route.ts) —
+  // it's called by the Electron main process, which has no session cookie.
+  const isPublic =
+    pathname.startsWith("/sign-in") || pathname.startsWith("/api/auth") || pathname.startsWith("/api/backup")
 
   if (!isAuthed && !isPublic) {
     return NextResponse.redirect(new URL("/sign-in", req.nextUrl.origin))
