@@ -1,4 +1,4 @@
-import { requireSession } from "@/lib/session"
+import { requireSession, canEdit } from "@/lib/session"
 import { listPastors, getDistrictOptions, getPastorOptions } from "@/lib/queries"
 import { PastorsListClient } from "@/components/pastors/pastors-list-client"
 
@@ -18,6 +18,7 @@ export default async function PastorsPage() {
       pastors={pastors}
       districtOptions={districtOptions}
       pastorOptions={pastorOptions}
+      canEdit={canEdit(session.role)}
     />
   )
 }

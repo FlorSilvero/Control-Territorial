@@ -1,4 +1,4 @@
-import { requireSession } from "@/lib/session"
+import { requireSession, canEdit } from "@/lib/session"
 import { listChurches, getDistrictOptions } from "@/lib/queries"
 import { ChurchesListClient } from "@/components/churches/churches-list-client"
 
@@ -12,5 +12,11 @@ export default async function ChurchesPage() {
     getDistrictOptions(session.organizationId),
   ])
 
-  return <ChurchesListClient churches={churches} districtOptions={districtOptions} />
+  return (
+    <ChurchesListClient
+      churches={churches}
+      districtOptions={districtOptions}
+      canEdit={canEdit(session.role)}
+    />
+  )
 }

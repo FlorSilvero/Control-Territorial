@@ -5,6 +5,8 @@ import {
   assignmentForDate,
   assignmentForDateOrEarliest,
   attributeBaptisms,
+  resolveMemberCarryForward,
+  membersAsOf,
   CURRENT_YEAR,
   type StatRow,
   type AssignmentWindow,
@@ -268,5 +270,67 @@ describe("cross-view consistency (church/district totals vs. pastor tenures)", (
     const pastorSideTotal = [...attributed.values()].reduce((a, b) => a + b, 0)
 
     expect(pastorSideTotal).toBe(districtTotal)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// resolveMemberCarryForward: used by the Excel statistics importer to fill in
+// blank "Miembros" cells with the most recent known value for that church.
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// membersAsOf: the stock carry-forward that keeps district aggregates honest.
+// ---------------------------------------------------------------------------
+describe("membersAsOf", () => {
+  it("returns the latest snapshot at or before the given period", () => {
+    const rows = [monthly(2025, 1, 0, 100), monthly(2025, 5, 0, 120), monthly(2025, 9, 0, 140)]
+    expect(membersAsOf(rows, 2025, 5)).toBe(120)
+    expect(membersAsOf(rows, 2025, 12)).toBe(140)
+  })
+
+  it("carries the previous year forward when the church skipped the period", () => {
+    const rows = [monthly(2024, 11, 0, 90)]
+    // No 2025 rows at all: the church still has the 90 members it last reported.
+    expect(membersAsOf(rows, 2025, 6)).toBe(90)
+  })
+
+  it("ignores records from after the cutoff", () => {
+    const rows = [monthly(2025, 3, 0, 100), monthly(2025, 8, 0, 200)]
+    expect(membersAsOf(rows, 2025, 3)).toBe(100)
+  })
+
+  it("counts a year's annual close when asked for the end of that year", () => {
+    const rows = [monthly(2024, 2, 0, 50), annual(2024, 0, 75)]
+    // sortKey ranks monthly above the annual of the same year, so month 12 as
+    // the cutoff must still include both — the annual row is the later data.
+    expect(membersAsOf(rows, 2024, 12)).toBe(50)
+    expect(membersAsOf(rows, 2024, 1)).toBe(75)
+  })
+
+  it("returns null when there is no data at or before the period", () => {
+    expect(membersAsOf([], 2025, 6)).toBeNull()
+    expect(membersAsOf([monthly(2026, 1, 0, 10)], 2025, 6)).toBeNull()
+  })
+
+  it("agrees with computeChurchStats for the church's most recent period", () => {
+    const rows = [monthly(CURRENT_YEAR - 1, 12, 2, 80), monthly(CURRENT_YEAR, 3, 1, 95)]
+    expect(membersAsOf(rows, CURRENT_YEAR, 12)).toBe(computeChurchStats(rows).currentMembers)
+  })
+})
+
+describe("resolveMemberCarryForward", () => {
+  it("carries the previous value forward through blank rows", () => {
+    expect(resolveMemberCarryForward([100, null, null, 120], null)).toEqual([100, 100, 100, 120])
+  })
+
+  it("uses the given baseline when the first row is blank", () => {
+    expect(resolveMemberCarryForward([null, null], 50)).toEqual([50, 50])
+  })
+
+  it("returns null when neither the baseline nor an earlier row has a value", () => {
+    expect(resolveMemberCarryForward([null, 90], null)).toEqual([null, 90])
+  })
+
+  it("leaves provided values untouched even with no baseline", () => {
+    expect(resolveMemberCarryForward([10, 20, 30], null)).toEqual([10, 20, 30])
   })
 })

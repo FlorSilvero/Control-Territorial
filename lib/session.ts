@@ -37,3 +37,11 @@ export async function requireSession(): Promise<SessionContext> {
 export function canEdit(role: string): boolean {
   return role === "ADMIN" || role === "EDITOR"
 }
+
+/**
+ * Stricter gate for operations that go beyond editing a record — restoring a
+ * backup replaces the whole database, so it is not something an EDITOR can do.
+ */
+export function isAdmin(role: string): boolean {
+  return role === "ADMIN"
+}

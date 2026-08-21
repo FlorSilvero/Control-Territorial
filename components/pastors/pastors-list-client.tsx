@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select"
 import { PastorDialog } from "@/components/pastors/pastor-dialog"
 import { AssignPastorDialog } from "@/components/pastors/assign-pastor-dialog"
+import { ImportPastorsDialog } from "@/components/pastors/import-pastors-dialog"
 import { formatDuration, formatDate, tenureInMonths } from "@/lib/date-utils"
 import { normalizeText } from "@/lib/utils"
 import {
@@ -26,7 +27,11 @@ import {
   Calendar,
   Clock,
   ArrowUpDown,
+  Upload,
+  Download,
 } from "lucide-react"
+
+type SortBy = "name" | "tenure-desc" | "tenure-asc"
 
 type PastorItem = {
   id: string
@@ -46,18 +51,22 @@ export function PastorsListClient({
   pastors,
   districtOptions,
   pastorOptions,
+  canEdit,
 }: {
   pastors: PastorItem[]
   districtOptions: { id: string; name: string }[]
   pastorOptions: { id: string; name: string }[]
+  /** VIEWER users get a read-only page: the server refuses these actions anyway. */
+  canEdit: boolean
 }) {
   const [createOpen, setCreateOpen] = useState(false)
   const [assignOpen, setAssignOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const [selectedPastorForAssign, setSelectedPastorForAssign] = useState<string | undefined>(undefined)
 
   const [search, setSearch] = useState("")
   const [tenureFilter, setTenureFilter] = useState<string>("all")
-  const [sortBy, setSortBy] = useState<"name" | "tenure-desc" | "tenure-asc">("name")
+  const [sortBy, setSortBy] = useState<SortBy>("name")
 
   // Filter
   const filtered = pastors.filter((p) => {
@@ -108,10 +117,27 @@ export function PastorsListClient({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={() => setCreateOpen(true)} className="gap-2 shrink-0">
-            <Plus className="size-4" />
-            Crear pastor
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<a href="/api/export/pastors" />}
+            className="gap-2 shrink-0"
+          >
+            <Download className="size-4" />
+            Exportar
           </Button>
+          {canEdit && (
+            <>
+              <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2 shrink-0">
+                <Upload className="size-4" />
+                Importar Excel
+              </Button>
+              <Button onClick={() => setCreateOpen(true)} className="gap-2 shrink-0">
+                <Plus className="size-4" />
+                Crear pastor
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -130,7 +156,7 @@ export function PastorsListClient({
         {/* Tenure Filter */}
         <Select
           value={tenureFilter}
-          onValueChange={setTenureFilter}
+          onValueChange={(value) => setTenureFilter(value ?? "all")}
           items={{
             all: "Todo tiempo en distrito",
             "lt-1": "Menos de 1 año",
@@ -155,7 +181,7 @@ export function PastorsListClient({
         {/* Sort Select */}
         <Select
           value={sortBy}
-          onValueChange={(v) => setSortBy(v as any)}
+          onValueChange={(value) => setSortBy((value as SortBy | null) ?? "name")}
           items={{
             name: "Ordenar por Apellido",
             "tenure-desc": "Mayor antigüedad",
@@ -184,10 +210,12 @@ export function PastorsListClient({
           <p className="text-sm text-muted-foreground mt-1 max-w-sm">
             No hay pastores registrados que coincidan con los criterios aplicados.
           </p>
-          <Button onClick={() => setCreateOpen(true)} className="mt-4 gap-2">
-            <Plus className="size-4" />
-            Crear pastor
-          </Button>
+          {canEdit && (
+            <Button onClick={() => setCreateOpen(true)} className="mt-4 gap-2">
+              <Plus className="size-4" />
+              Crear pastor
+            </Button>
+          )}
         </Card>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -254,19 +282,21 @@ export function PastorsListClient({
                   </CardContent>
                 </div>
 
-                <CardFooter className="pt-3 border-t flex flex-col gap-2">
-                  <div className="flex gap-2 w-full">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openAssign(p.id)}
-                      className="flex-1 text-xs"
-                    >
-                      <UserCheck className="size-3.5 mr-1" />
-                      {p.currentDistrict ? "Cambiar distrito" : "Asignar"}
-                    </Button>
-                  </div>
-                </CardFooter>
+                {canEdit && (
+                  <CardFooter className="pt-3 border-t flex flex-col gap-2">
+                    <div className="flex gap-2 w-full">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openAssign(p.id)}
+                        className="flex-1 text-xs"
+                      >
+                        <UserCheck className="size-3.5 mr-1" />
+                        {p.currentDistrict ? "Cambiar distrito" : "Asignar"}
+                      </Button>
+                    </div>
+                  </CardFooter>
+                )}
               </Card>
             )
           })}
@@ -275,6 +305,8 @@ export function PastorsListClient({
 
       {/* Dialogs */}
       <PastorDialog open={createOpen} onOpenChange={setCreateOpen} />
+
+      <ImportPastorsDialog open={importOpen} onOpenChange={setImportOpen} />
 
       <AssignPastorDialog
         open={assignOpen}

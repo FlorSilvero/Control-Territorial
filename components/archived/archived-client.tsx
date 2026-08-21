@@ -17,16 +17,27 @@ import { restoreDistrict } from "@/lib/actions/districts"
 import { restoreChurch } from "@/lib/actions/churches"
 import { restorePastor } from "@/lib/actions/pastors"
 import { formatDate } from "@/lib/date-utils"
-import { MapPinned, Church, Users, RotateCcw, Archive } from "lucide-react"
+import { MapPinned, Church, Users, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
+import type { listDistricts, listChurches, listPastors } from "@/lib/queries"
 
+// Derived from the queries that feed this view, so a change to any of them
+// surfaces here at compile time instead of as a runtime undefined.
+// `import type` is erased, so pulling from a "server-only" module is safe.
 type ArchivedData = {
-  districts: any[]
-  churches: any[]
-  pastors: any[]
+  districts: Awaited<ReturnType<typeof listDistricts>>
+  churches: Awaited<ReturnType<typeof listChurches>>
+  pastors: Awaited<ReturnType<typeof listPastors>>
 }
 
-export function ArchivedClient({ data }: { data: ArchivedData }) {
+export function ArchivedClient({
+  data,
+  canEdit,
+}: {
+  data: ArchivedData
+  /** VIEWER users get a read-only page: the server refuses these actions anyway. */
+  canEdit: boolean
+}) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
@@ -125,16 +136,18 @@ export function ArchivedClient({ data }: { data: ArchivedData }) {
                           {formatDate(d.archivedAt)}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleRestoreDistrict(d.id, d.name)}
-                            disabled={isPending}
-                            className="gap-1.5"
-                          >
-                            <RotateCcw className="size-3.5" />
-                            Restaurar
-                          </Button>
+                          {canEdit && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRestoreDistrict(d.id, d.name)}
+                              disabled={isPending}
+                              className="gap-1.5"
+                            >
+                              <RotateCcw className="size-3.5" />
+                              Restaurar
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -178,16 +191,18 @@ export function ArchivedClient({ data }: { data: ArchivedData }) {
                           {formatDate(c.archivedAt)}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleRestoreChurch(c.id, c.name)}
-                            disabled={isPending}
-                            className="gap-1.5"
-                          >
-                            <RotateCcw className="size-3.5" />
-                            Restaurar
-                          </Button>
+                          {canEdit && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRestoreChurch(c.id, c.name)}
+                              disabled={isPending}
+                              className="gap-1.5"
+                            >
+                              <RotateCcw className="size-3.5" />
+                              Restaurar
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -233,16 +248,18 @@ export function ArchivedClient({ data }: { data: ArchivedData }) {
                             {formatDate(p.archivedAt)}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleRestorePastor(p.id, name)}
-                              disabled={isPending}
-                              className="gap-1.5"
-                            >
-                              <RotateCcw className="size-3.5" />
-                              Restaurar
-                            </Button>
+                            {canEdit && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleRestorePastor(p.id, name)}
+                                disabled={isPending}
+                                className="gap-1.5"
+                              >
+                                <RotateCcw className="size-3.5" />
+                                Restaurar
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       )

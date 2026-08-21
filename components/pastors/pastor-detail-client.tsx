@@ -19,7 +19,6 @@ import { AssignPastorDialog } from "@/components/pastors/assign-pastor-dialog"
 import { archivePastor } from "@/lib/actions/pastors"
 import { formatDate, formatDuration, MONTH_NAMES } from "@/lib/date-utils"
 import {
-  Users,
   MapPinned,
   UserCheck,
   Pencil,
@@ -59,10 +58,13 @@ export function PastorDetailClient({
   pastor,
   districtOptions,
   pastorOptions,
+  canEdit,
 }: {
   pastor: PastorDetailData
   districtOptions: { id: string; name: string }[]
   pastorOptions: { id: string; name: string }[]
+  /** VIEWER users get a read-only page: the server refuses these actions anyway. */
+  canEdit: boolean
 }) {
   const [editOpen, setEditOpen] = useState(false)
   const [assignOpen, setAssignOpen] = useState(false)
@@ -132,26 +134,28 @@ export function PastorDetailClient({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1.5">
-            <Pencil className="size-3.5" />
-            Editar
-          </Button>
-          <Button size="sm" onClick={() => setAssignOpen(true)} className="gap-1.5">
-            <UserCheck className="size-3.5" />
-            {pastor.currentDistrict ? "Cambiar distrito" : "Asignar a distrito"}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleArchive}
-            disabled={isPending}
-            className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
-          >
-            <Archive className="size-3.5" />
-            Archivar
-          </Button>
-        </div>
+        {canEdit && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1.5">
+              <Pencil className="size-3.5" />
+              Editar
+            </Button>
+            <Button size="sm" onClick={() => setAssignOpen(true)} className="gap-1.5">
+              <UserCheck className="size-3.5" />
+              {pastor.currentDistrict ? "Cambiar distrito" : "Asignar a distrito"}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleArchive}
+              disabled={isPending}
+              className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Archive className="size-3.5" />
+              Archivar
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Summary KPI Cards */}

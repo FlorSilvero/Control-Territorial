@@ -1,12 +1,60 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
+import type { Prisma } from "@/lib/generated/prisma/client"
 import { requireSession, canEdit } from "@/lib/session"
 import { pastorSchema, assignmentSchema, idSchema } from "@/lib/validations"
 import { normalizeText } from "@/lib/utils"
+import { audit } from "@/lib/audit"
 import { revalidatePath } from "next/cache"
 
 type ActionResult = { ok: true; id?: string } | { ok: false; error: string }
+
+/**
+ * Reassign a pastor to a district within an existing transaction. THE
+ * critical operation, shared by the single-assignment UI flow (`assignPastor`)
+ * and bulk Excel import (`importPastors`):
+ *
+ *  1. Close the district's current assignment (endDate = day before start).
+ *  2. Close the pastor's current assignment elsewhere, if any.
+ *  3. Create the new active assignment (endDate = null).
+ *
+ * Historical rows are never modified — only the previously-open row is closed.
+ */
+export async function reassignPastorTx(
+  tx: Prisma.TransactionClient,
+  args: {
+    organizationId: string
+    pastorId: string
+    districtId: string
+    start: Date
+    createdById: string
+  },
+): Promise<void> {
+  const { organizationId, pastorId, districtId, start, createdById } = args
+
+  const prevEnd = new Date(start)
+  prevEnd.setDate(prevEnd.getDate() - 1)
+
+  await tx.pastorAssignment.updateMany({
+    where: { districtId, endDate: null, organizationId },
+    data: { endDate: prevEnd },
+  })
+  await tx.pastorAssignment.updateMany({
+    where: { pastorId, endDate: null, organizationId },
+    data: { endDate: prevEnd },
+  })
+  await tx.pastorAssignment.create({
+    data: {
+      organizationId,
+      pastorId,
+      districtId,
+      startDate: start,
+      endDate: null,
+      createdById,
+    },
+  })
+}
 
 /**
  * Accent- and case-insensitive first+last name match anywhere in the org,
@@ -38,26 +86,6 @@ function duplicatePastorError(duplicate: { archivedAt: Date | null }): string {
   return duplicate.archivedAt
     ? "Ya existe un pastor archivado con ese nombre y apellido. Restauralo desde Archivados en lugar de crear uno nuevo."
     : "Ya existe un pastor con ese nombre y apellido"
-}
-
-async function audit(
-  orgId: string,
-  actorId: string,
-  action: string,
-  entityType: string,
-  entityId: string,
-  metadata?: Record<string, unknown>,
-) {
-  await prisma.auditLog.create({
-    data: {
-      organizationId: orgId,
-      actorId,
-      action,
-      entityType,
-      entityId,
-      metadata: metadata ?? undefined,
-    },
-  })
 }
 
 export async function createPastor(input: unknown): Promise<ActionResult> {
@@ -192,10 +220,6 @@ export async function assignPastor(input: unknown): Promise<ActionResult> {
   const start = new Date(startYear, (startMonth ?? 1) - 1, startDay ?? 1)
   if (Number.isNaN(start.getTime())) return { ok: false, error: "Fecha inválida" }
 
-  // The day the previous assignment ends: one day before the new start.
-  const prevEnd = new Date(start)
-  prevEnd.setDate(prevEnd.getDate() - 1)
-
   const [pastor, district] = await Promise.all([
     prisma.pastor.findFirst({ where: { id: pastorId, organizationId: ctx.organizationId, archivedAt: null } }),
     prisma.district.findFirst({ where: { id: districtId, organizationId: ctx.organizationId, archivedAt: null } }),
@@ -204,29 +228,15 @@ export async function assignPastor(input: unknown): Promise<ActionResult> {
   if (!district) return { ok: false, error: "Distrito inválido" }
 
   try {
-    await prisma.$transaction(async (tx) => {
-      // 1. Close whoever currently leads this district.
-      await tx.pastorAssignment.updateMany({
-        where: { districtId, endDate: null, organizationId: ctx.organizationId },
-        data: { endDate: prevEnd },
-      })
-      // 2. Close this pastor's current assignment elsewhere.
-      await tx.pastorAssignment.updateMany({
-        where: { pastorId, endDate: null, organizationId: ctx.organizationId },
-        data: { endDate: prevEnd },
-      })
-      // 3. Open the new assignment.
-      await tx.pastorAssignment.create({
-        data: {
-          organizationId: ctx.organizationId,
-          pastorId,
-          districtId,
-          startDate: start,
-          endDate: null,
-          createdById: ctx.userId,
-        },
-      })
-    })
+    await prisma.$transaction((tx) =>
+      reassignPastorTx(tx, {
+        organizationId: ctx.organizationId,
+        pastorId,
+        districtId,
+        start,
+        createdById: ctx.userId,
+      }),
+    )
   } catch {
     return { ok: false, error: "No se pudo completar la reasignación" }
   }

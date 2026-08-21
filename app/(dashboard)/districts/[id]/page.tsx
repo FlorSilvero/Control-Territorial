@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { requireSession } from "@/lib/session"
+import { requireSession, canEdit } from "@/lib/session"
 import { getDistrictDetail, getDistrictOptions, getPastorOptions } from "@/lib/queries"
 import { DistrictDetailClient } from "@/components/districts/district-detail-client"
 
@@ -26,6 +26,7 @@ export default async function DistrictDetailPage({
       district={district}
       districtOptions={districtOptions}
       pastorOptions={pastorOptions}
+      canEdit={canEdit(session.role)}
     />
   )
 }

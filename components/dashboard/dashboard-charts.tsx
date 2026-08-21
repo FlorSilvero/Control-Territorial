@@ -56,7 +56,7 @@ export function BaptismsByYearChart({
               fontSize: "12px",
               boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
             }}
-            formatter={(value: any) => [`${value} bautismos`, "Bautismos"]}
+            formatter={(value) => [`${value} bautismos`, "Bautismos"]}
             labelFormatter={(label) => `Año ${label}`}
           />
           <Bar dataKey="baptisms" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
@@ -99,7 +99,7 @@ export function BaptismsByMonthChart({
               fontSize: "12px",
               boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
             }}
-            formatter={(value: any) => [`${value} bautismos`, "Bautismos"]}
+            formatter={(value) => [`${value} bautismos`, "Bautismos"]}
           />
           <Line
             type="monotone"
@@ -154,7 +154,7 @@ export function MembersByDistrictChart({
               fontSize: "12px",
               boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
             }}
-            formatter={(value: any) => [`${value} miembros`, "Miembros"]}
+            formatter={(value) => [`${value} miembros`, "Miembros"]}
           />
           <Bar dataKey="members" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} opacity={0.85} />
         </BarChart>

@@ -29,10 +29,7 @@ import { AssignPastorDialog } from "@/components/pastors/assign-pastor-dialog"
 import { archiveDistrict } from "@/lib/actions/districts"
 import { formatDate, formatDuration, MONTH_NAMES } from "@/lib/date-utils"
 import {
-  MapPinned,
   Church,
-  Users,
-  Waves,
   UserCheck,
   Plus,
   Pencil,
@@ -86,10 +83,13 @@ export function DistrictDetailClient({
   district,
   districtOptions,
   pastorOptions,
+  canEdit,
 }: {
   district: DetailData
   districtOptions: { id: string; name: string }[]
   pastorOptions: { id: string; name: string }[]
+  /** VIEWER users get a read-only page: the server refuses these actions anyway. */
+  canEdit: boolean
 }) {
   const [editOpen, setEditOpen] = useState(false)
   const [churchCreateOpen, setChurchCreateOpen] = useState(false)
@@ -141,26 +141,28 @@ export function DistrictDetailClient({
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1.5">
-            <Pencil className="size-3.5" />
-            Editar
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setAssignOpen(true)} className="gap-1.5">
-            <UserCheck className="size-3.5" />
-            Asignar pastor
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleArchive}
-            disabled={isPending}
-            className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
-          >
-            <Archive className="size-3.5" />
-            Archivar
-          </Button>
-        </div>
+        {canEdit && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1.5">
+              <Pencil className="size-3.5" />
+              Editar
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setAssignOpen(true)} className="gap-1.5">
+              <UserCheck className="size-3.5" />
+              Asignar pastor
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleArchive}
+              disabled={isPending}
+              className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Archive className="size-3.5" />
+              Archivar
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Summary KPI Cards */}
@@ -249,10 +251,12 @@ export function DistrictDetailClient({
         <TabsContent value="churches" className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-serif text-xl font-semibold">Iglesias del Distrito</h2>
-            <Button size="sm" onClick={() => setChurchCreateOpen(true)} className="gap-1.5">
-              <Plus className="size-4" />
-              Crear iglesia
-            </Button>
+            {canEdit && (
+              <Button size="sm" onClick={() => setChurchCreateOpen(true)} className="gap-1.5">
+                <Plus className="size-4" />
+                Crear iglesia
+              </Button>
+            )}
           </div>
 
           {district.churches.length === 0 ? (
@@ -260,10 +264,12 @@ export function DistrictDetailClient({
               <p className="text-sm text-muted-foreground">
                 No hay iglesias pertenecientes a este distrito.
               </p>
-              <Button size="sm" variant="outline" onClick={() => setChurchCreateOpen(true)} className="mt-4 gap-1.5">
-                <Plus className="size-4" />
-                Agregar la primera iglesia
-              </Button>
+              {canEdit && (
+                <Button size="sm" variant="outline" onClick={() => setChurchCreateOpen(true)} className="mt-4 gap-1.5">
+                  <Plus className="size-4" />
+                  Agregar la primera iglesia
+                </Button>
+              )}
             </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

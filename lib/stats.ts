@@ -100,6 +100,30 @@ export function computeStartOfYearMembers(rows: StatRow[]): number | null {
   return null
 }
 
+/**
+ * Member count for ONE church as of the end of (year, month), carrying the
+ * last known snapshot forward.
+ *
+ * memberCount is a stock: a church that didn't report in a given period still
+ * has the members it last reported. Aggregating a district by summing only
+ * the rows that happen to exist for a period silently drops every church that
+ * skipped it, which is why the district's history table could disagree with
+ * its own "total members" card. Carrying forward keeps the two in agreement.
+ *
+ * Returns null when the church has no record at or before that period, so
+ * callers can tell "zero members" apart from "no data yet".
+ */
+export function membersAsOf(rows: StatRow[], year: number, month: number): number | null {
+  const cutoff = year * 13 + month
+  let best: StatRow | null = null
+  for (const r of rows) {
+    const key = sortKey(r)
+    if (key > cutoff) continue
+    if (!best || key > sortKey(best)) best = r
+  }
+  return best?.memberCount ?? null
+}
+
 /** Representative date used to attribute a stat record to a pastor's tenure. */
 export function representativeDate(row: StatRow): Date {
   if (row.period === "MONTHLY" && row.month) {
@@ -226,6 +250,26 @@ export function attributeBaptisms(
   }
 
   return result
+}
+
+/**
+ * Resolves memberCount for a chronological sequence of rows (already sorted
+ * ascending by period) where some rows don't specify a value and should
+ * carry forward the most recent known one — memberCount is a stock, not a
+ * flow. Used by the Excel statistics importer: `null` in the input means
+ * "not provided in this row", and `null` in the output means "no value
+ * available yet" (no baseline and nothing provided so far), which callers
+ * should treat as an error rather than defaulting to 0.
+ */
+export function resolveMemberCarryForward(
+  members: (number | null)[],
+  baseline: number | null,
+): (number | null)[] {
+  let current = baseline
+  return members.map((value) => {
+    if (value != null) current = value
+    return current
+  })
 }
 
 export function pastorLabel(

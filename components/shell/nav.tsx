@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, MapPinned, Church, Users, Archive } from "lucide-react"
+import { LayoutDashboard, MapPinned, Church, Users, Archive, DatabaseBackup } from "lucide-react"
 
 export const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -11,6 +11,7 @@ export const NAV_ITEMS = [
   { href: "/churches", label: "Iglesias", icon: Church },
   { href: "/pastors", label: "Pastores", icon: Users },
   { href: "/archived", label: "Archivados", icon: Archive },
+  { href: "/settings/backups", label: "Backups", icon: DatabaseBackup },
 ]
 
 export function Nav({ onNavigate }: { onNavigate?: () => void }) {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useTransition } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -51,13 +51,22 @@ export function AssignPastorDialog({
   const isPastorLocked = Boolean(defaultPastorId)
   const isDistrictLocked = Boolean(defaultDistrictId)
 
-  useEffect(() => {
+  // The dialog stays mounted across opens (only `open` toggles), so its fields
+  // have to be re-synced from props every time it opens. Doing that during
+  // render rather than in an effect is the pattern React documents for
+  // "adjust state when a prop changes": React re-runs this component with the
+  // new state before committing, instead of painting a stale frame first and
+  // then cascading a second render.
+  const resetKey = `${open}|${defaultPastorId ?? ""}|${initialPastorId ?? ""}|${defaultDistrictId ?? ""}`
+  const [syncedKey, setSyncedKey] = useState(resetKey)
+  if (resetKey !== syncedKey) {
+    setSyncedKey(resetKey)
     if (open) {
       setPastorId(defaultPastorId ?? initialPastorId ?? "")
       setDistrictId(defaultDistrictId ?? "")
       setStartDate(new Date().toISOString().split("T")[0])
     }
-  }, [open, defaultPastorId, initialPastorId, defaultDistrictId])
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -101,7 +110,7 @@ export function AssignPastorDialog({
             <Label htmlFor="assign-pastor">Pastor *</Label>
             <Select
               value={pastorId}
-              onValueChange={setPastorId}
+              onValueChange={(value) => setPastorId(value ?? "")}
               items={pastorOptions.map((p) => ({ value: p.id, label: p.name }))}
               disabled={isPastorLocked}
             >
@@ -122,7 +131,7 @@ export function AssignPastorDialog({
             <Label htmlFor="assign-district">Distrito Destino *</Label>
             <Select
               value={districtId}
-              onValueChange={setDistrictId}
+              onValueChange={(value) => setDistrictId(value ?? "")}
               items={districtOptions.map((d) => ({ value: d.id, label: d.name }))}
               disabled={isDistrictLocked}
             >

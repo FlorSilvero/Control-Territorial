@@ -3,28 +3,10 @@
 import { prisma } from "@/lib/prisma"
 import { requireSession, canEdit } from "@/lib/session"
 import { districtSchema, idSchema } from "@/lib/validations"
+import { audit } from "@/lib/audit"
 import { revalidatePath } from "next/cache"
 
 type ActionResult = { ok: true; id?: string } | { ok: false; error: string }
-
-async function audit(
-  orgId: string,
-  actorId: string,
-  action: string,
-  entityId: string,
-  metadata?: Record<string, unknown>,
-) {
-  await prisma.auditLog.create({
-    data: {
-      organizationId: orgId,
-      actorId,
-      action,
-      entityType: "district",
-      entityId,
-      metadata: metadata ?? undefined,
-    },
-  })
-}
 
 export async function createDistrict(input: unknown): Promise<ActionResult> {
   const ctx = await requireSession()
@@ -42,7 +24,7 @@ export async function createDistrict(input: unknown): Promise<ActionResult> {
       updatedById: ctx.userId,
     },
   })
-  await audit(ctx.organizationId, ctx.userId, "district.create", district.id, {
+  await audit(ctx.organizationId, ctx.userId, "district.create", "district", district.id, {
     name: district.name,
   })
 
@@ -71,7 +53,7 @@ export async function updateDistrict(id: string, input: unknown): Promise<Action
       updatedById: ctx.userId,
     },
   })
-  await audit(ctx.organizationId, ctx.userId, "district.update", id)
+  await audit(ctx.organizationId, ctx.userId, "district.update", "district", id)
 
   revalidatePath("/districts")
   revalidatePath(`/districts/${id}`)
@@ -96,7 +78,7 @@ export async function archiveDistrict(id: string): Promise<ActionResult> {
   }
 
   await prisma.district.update({ where: { id }, data: { archivedAt: new Date() } })
-  await audit(ctx.organizationId, ctx.userId, "district.archive", id)
+  await audit(ctx.organizationId, ctx.userId, "district.archive", "district", id)
 
   revalidatePath("/districts")
   revalidatePath("/archived")
@@ -114,7 +96,7 @@ export async function restoreDistrict(id: string): Promise<ActionResult> {
   if (!existing) return { ok: false, error: "Distrito no encontrado" }
 
   await prisma.district.update({ where: { id }, data: { archivedAt: null } })
-  await audit(ctx.organizationId, ctx.userId, "district.restore", id)
+  await audit(ctx.organizationId, ctx.userId, "district.restore", "district", id)
 
   revalidatePath("/districts")
   revalidatePath("/archived")

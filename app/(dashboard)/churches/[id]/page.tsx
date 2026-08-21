@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { requireSession } from "@/lib/session"
+import { requireSession, canEdit } from "@/lib/session"
 import { getChurchDetail, getDistrictOptions } from "@/lib/queries"
 import { ChurchDetailClient } from "@/components/churches/church-detail-client"
 
@@ -20,5 +20,11 @@ export default async function ChurchDetailPage({
 
   if (!church) notFound()
 
-  return <ChurchDetailClient church={church} districtOptions={districtOptions} />
+  return (
+    <ChurchDetailClient
+      church={church}
+      districtOptions={districtOptions}
+      canEdit={canEdit(session.role)}
+    />
+  )
 }

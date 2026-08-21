@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useTransition } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -71,18 +71,24 @@ export function StatisticDialog({
   // The dialog element stays mounted across opens (only `open` toggles), so
   // its state has to be re-synced from initialRecord every time it opens —
   // otherwise reopening it for a different record keeps showing whatever was
-  // last typed, and saving quietly overwrites that other record.
-  useEffect(() => {
-    if (!open) return
-    const y = initialRecord?.year ?? currentYear
-    const m = isEditingAnnual ? currentMonth : initialRecord?.month ?? currentMonth
-    setYear(y)
-    setMonth(m)
-    const match = isEditingAnnual ? initialRecord : findMatch(y, m) ?? initialRecord
-    setMemberCount(match?.memberCount ?? 0)
-    setBaptismCount(match?.baptismCount ?? 0)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialRecord])
+  // last typed, and saving quietly overwrites that other record. This runs
+  // during render rather than in an effect (React's documented "adjust state
+  // when a prop changes"), so the re-sync lands before the dialog paints
+  // instead of cascading a second render after a stale frame.
+  const resetKey = `${open}|${initialRecord?.id ?? "new"}`
+  const [syncedKey, setSyncedKey] = useState(resetKey)
+  if (resetKey !== syncedKey) {
+    setSyncedKey(resetKey)
+    if (open) {
+      const y = initialRecord?.year ?? currentYear
+      const m = isEditingAnnual ? currentMonth : initialRecord?.month ?? currentMonth
+      setYear(y)
+      setMonth(m)
+      const match = isEditingAnnual ? initialRecord : findMatch(y, m) ?? initialRecord
+      setMemberCount(match?.memberCount ?? 0)
+      setBaptismCount(match?.baptismCount ?? 0)
+    }
+  }
 
   // If a monthly record already exists for the selected year/month, surface
   // it so the "existing data loaded" hint below can render.

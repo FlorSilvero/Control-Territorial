@@ -38,9 +38,12 @@ const trendStyles: Record<MembersTrend, { box: string; icon: typeof TrendingUp }
 export function ChurchesListClient({
   churches,
   districtOptions,
+  canEdit,
 }: {
   churches: ChurchItem[]
   districtOptions: { id: string; name: string }[]
+  /** VIEWER users get a read-only page: the server refuses these actions anyway. */
+  canEdit: boolean
 }) {
   const [createOpen, setCreateOpen] = useState(false)
   const [search, setSearch] = useState("")
@@ -63,10 +66,12 @@ export function ChurchesListClient({
             Gestión de congregaciones locales y sus estadísticas de miembros y bautismos.
           </p>
         </div>
-        <Button onClick={() => setCreateOpen(true)} className="gap-2 shrink-0">
-          <Plus className="size-4" />
-          Crear iglesia
-        </Button>
+        {canEdit && (
+          <Button onClick={() => setCreateOpen(true)} className="gap-2 shrink-0">
+            <Plus className="size-4" />
+            Crear iglesia
+          </Button>
+        )}
       </div>
 
       {/* Filter and Search Bar */}
@@ -83,7 +88,7 @@ export function ChurchesListClient({
 
         <Select
           value={selectedDistrict}
-          onValueChange={setSelectedDistrict}
+          onValueChange={(value) => setSelectedDistrict(value ?? "all")}
           items={{
             all: "Todos los distritos",
             ...Object.fromEntries(districtOptions.map((d) => [d.id, d.name])),
@@ -113,10 +118,12 @@ export function ChurchesListClient({
           <p className="text-sm text-muted-foreground mt-1 max-w-sm">
             No se encontraron iglesias que coincidan con los filtros de búsqueda.
           </p>
-          <Button onClick={() => setCreateOpen(true)} className="mt-4 gap-2">
-            <Plus className="size-4" />
-            Crear iglesia
-          </Button>
+          {canEdit && (
+            <Button onClick={() => setCreateOpen(true)} className="mt-4 gap-2">
+              <Plus className="size-4" />
+              Crear iglesia
+            </Button>
+          )}
         </Card>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -101,7 +101,7 @@ export function ChurchDialog({
             <Label htmlFor="church-district">Distrito asignado *</Label>
             <Select
               value={districtId}
-              onValueChange={setDistrictId}
+              onValueChange={(value) => setDistrictId(value ?? "")}
               items={districtOptions.map((d) => ({ value: d.id, label: d.name }))}
             >
               <SelectTrigger id="church-district">

@@ -35,16 +35,15 @@ export function GlobalSearch() {
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Debounced search
+  // Debounced search. An empty box needs no state change at all — the dropdown
+  // visibility is derived from the query below, so clearing it here would just
+  // be a synchronous setState in an effect body triggering a cascading render.
   useEffect(() => {
-    if (!query.trim()) {
-      setResults([])
-      setOpen(false)
-      return
-    }
+    const trimmed = query.trim()
+    if (!trimmed) return
     const handle = setTimeout(() => {
       startTransition(async () => {
-        const r = await searchAction(query)
+        const r = await searchAction(trimmed)
         setResults(r)
         setOpen(true)
         setActiveIndex(-1)
@@ -77,6 +76,10 @@ export function GlobalSearch() {
     return () => document.removeEventListener("keydown", down)
   }, [])
 
+  // Stale results from a previous query stay hidden without needing to be
+  // cleared: an empty box is never open.
+  const isOpen = open && query.trim().length > 0
+
   const flatResults = results
 
   const go = (r: SearchResult) => {
@@ -87,7 +90,7 @@ export function GlobalSearch() {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!open) return
+    if (!isOpen) return
     if (e.key === "ArrowDown") {
       e.preventDefault()
       setActiveIndex((i) => Math.min(i + 1, flatResults.length - 1))
@@ -149,7 +152,7 @@ export function GlobalSearch() {
       </div>
 
       {/* Dropdown */}
-      {open && (
+      {isOpen && (
         <div
           className={cn(
             "absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-md border bg-popover shadow-md",

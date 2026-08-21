@@ -4,9 +4,9 @@ import { useState } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { DistrictDialog } from "@/components/districts/district-dialog"
-import { MapPinned, Church, Users, Waves, UserCheck, Plus } from "lucide-react"
+import { ImportDistrictStatsDialog } from "@/components/districts/import-district-stats-dialog"
+import { MapPinned, Church, Users, Waves, UserCheck, Plus, Upload, Download } from "lucide-react"
 
 type DistrictItem = {
   id: string
@@ -24,8 +24,16 @@ type DistrictItem = {
   } | null
 }
 
-export function DistrictsListClient({ districts }: { districts: DistrictItem[] }) {
+export function DistrictsListClient({
+  districts,
+  canEdit,
+}: {
+  districts: DistrictItem[]
+  /** VIEWER users get a read-only page: the server refuses these actions anyway. */
+  canEdit: boolean
+}) {
   const [createOpen, setCreateOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
 
   return (
     <div className="space-y-6">
@@ -37,10 +45,29 @@ export function DistrictsListClient({ districts }: { districts: DistrictItem[] }
             Gestión de zonas geográficas pastorales y sus iglesias asignadas.
           </p>
         </div>
-        <Button onClick={() => setCreateOpen(true)} className="gap-2 shrink-0">
-          <Plus className="size-4" />
-          Crear distrito
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<a href="/api/export/statistics" />}
+            className="gap-2 shrink-0"
+          >
+            <Download className="size-4" />
+            Exportar estadísticas
+          </Button>
+          {canEdit && (
+            <>
+              <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2 shrink-0">
+                <Upload className="size-4" />
+                Importar estadísticas
+              </Button>
+              <Button onClick={() => setCreateOpen(true)} className="gap-2 shrink-0">
+                <Plus className="size-4" />
+                Crear distrito
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Grid of Cards */}
@@ -53,10 +80,12 @@ export function DistrictsListClient({ districts }: { districts: DistrictItem[] }
           <p className="text-sm text-muted-foreground mt-1 max-w-sm">
             Comenzá creando tu primer distrito pastoral para organizar las iglesias y pastores.
           </p>
-          <Button onClick={() => setCreateOpen(true)} className="mt-4 gap-2">
-            <Plus className="size-4" />
-            Crear distrito
-          </Button>
+          {canEdit && (
+            <Button onClick={() => setCreateOpen(true)} className="mt-4 gap-2">
+              <Plus className="size-4" />
+              Crear distrito
+            </Button>
+          )}
         </Card>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -122,8 +151,9 @@ export function DistrictsListClient({ districts }: { districts: DistrictItem[] }
         </div>
       )}
 
-      {/* Dialog for creating a district */}
+      {/* Dialogs */}
       <DistrictDialog open={createOpen} onOpenChange={setCreateOpen} />
+      <ImportDistrictStatsDialog open={importOpen} onOpenChange={setImportOpen} />
     </div>
   )
 }

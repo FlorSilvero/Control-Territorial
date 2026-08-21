@@ -1,4 +1,4 @@
-import { requireSession } from "@/lib/session"
+import { requireSession, canEdit } from "@/lib/session"
 import { listDistricts, listChurches, listPastors } from "@/lib/queries"
 import { ArchivedClient } from "@/components/archived/archived-client"
 
@@ -13,5 +13,5 @@ export default async function ArchivedPage() {
     listPastors(session.organizationId, { archived: true }),
   ])
 
-  return <ArchivedClient data={{ districts, churches, pastors }} />
+  return <ArchivedClient data={{ districts, churches, pastors }} canEdit={canEdit(session.role)} />
 }

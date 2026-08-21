@@ -29,11 +29,8 @@ import { archiveChurch } from "@/lib/actions/churches"
 import { deleteStatistic } from "@/lib/actions/statistics"
 import { MONTH_NAMES } from "@/lib/date-utils"
 import {
-  Church,
   MapPinned,
-  Users,
   Waves,
-  UserCheck,
   Plus,
   Pencil,
   Archive,
@@ -55,27 +52,32 @@ type ChurchDetailData = {
   currentMembers: number
   baptismsThisYear: number
   baptismsTotal: number
-  statistics: {
-    id: string
-    period: "ANNUAL" | "MONTHLY"
-    year: number
-    month?: number | null
-    memberCount: number
-    baptismCount: number
-  }[]
+  statistics: StatisticRow[]
   yearly: YearlyRow[]
+}
+
+type StatisticRow = {
+  id: string
+  period: "ANNUAL" | "MONTHLY"
+  year: number
+  month?: number | null
+  memberCount: number
+  baptismCount: number
 }
 
 export function ChurchDetailClient({
   church,
   districtOptions,
+  canEdit,
 }: {
   church: ChurchDetailData
   districtOptions: { id: string; name: string }[]
+  /** VIEWER users get a read-only page: the server refuses these actions anyway. */
+  canEdit: boolean
 }) {
   const [editOpen, setEditOpen] = useState(false)
   const [statOpen, setStatOpen] = useState(false)
-  const [editingRecord, setEditingRecord] = useState<any | null>(null)
+  const [editingRecord, setEditingRecord] = useState<StatisticRow | null>(null)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
@@ -114,7 +116,7 @@ export function ChurchDetailClient({
     setStatOpen(true)
   }
 
-  const openEditStat = (rec: any) => {
+  const openEditStat = (rec: StatisticRow) => {
     setEditingRecord(rec)
     setStatOpen(true)
   }
@@ -158,26 +160,28 @@ export function ChurchDetailClient({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1.5">
-            <Pencil className="size-3.5" />
-            Editar
-          </Button>
-          <Button size="sm" onClick={openNewStat} className="gap-1.5">
-            <Plus className="size-3.5" />
-            Registrar estadística
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleArchive}
-            disabled={isPending}
-            className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
-          >
-            <Archive className="size-3.5" />
-            Archivar
-          </Button>
-        </div>
+        {canEdit && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1.5">
+              <Pencil className="size-3.5" />
+              Editar
+            </Button>
+            <Button size="sm" onClick={openNewStat} className="gap-1.5">
+              <Plus className="size-3.5" />
+              Registrar estadística
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleArchive}
+              disabled={isPending}
+              className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Archive className="size-3.5" />
+              Archivar
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Quick KPI Cards */}
@@ -248,10 +252,12 @@ export function ChurchDetailClient({
                   Muestra la cantidad de miembros, bautismos y el pastor a cargo durante cada período anual.
                 </CardDescription>
               </div>
-              <Button size="sm" variant="outline" onClick={openNewStat} className="gap-1.5">
-                <Plus className="size-3.5" />
-                Registrar dato
-              </Button>
+              {canEdit && (
+                <Button size="sm" variant="outline" onClick={openNewStat} className="gap-1.5">
+                  <Plus className="size-3.5" />
+                  Registrar dato
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               {church.yearly.length === 0 ? (
@@ -304,10 +310,12 @@ export function ChurchDetailClient({
                   Todos los registros ingresados, del más reciente al más antiguo.
                 </CardDescription>
               </div>
-              <Button size="sm" variant="outline" onClick={openNewStat} className="gap-1.5">
-                <Plus className="size-3.5" />
-                Registrar mes
-              </Button>
+              {canEdit && (
+                <Button size="sm" variant="outline" onClick={openNewStat} className="gap-1.5">
+                  <Plus className="size-3.5" />
+                  Registrar mes
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               {church.statistics.length === 0 ? (
@@ -340,24 +348,28 @@ export function ChurchDetailClient({
                           {rec.baptismCount}
                         </TableCell>
                         <TableCell className="text-right space-x-1">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => openEditStat(rec)}
-                            className="size-8"
-                          >
-                            <Pencil className="size-3.5" />
-                            <span className="sr-only">Editar</span>
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleDeleteStat(rec.id)}
-                            className="size-8 text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="size-3.5" />
-                            <span className="sr-only">Eliminar</span>
-                          </Button>
+                          {canEdit && (
+                            <>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => openEditStat(rec)}
+                                className="size-8"
+                              >
+                                <Pencil className="size-3.5" />
+                                <span className="sr-only">Editar</span>
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => handleDeleteStat(rec.id)}
+                                className="size-8 text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="size-3.5" />
+                                <span className="sr-only">Eliminar</span>
+                              </Button>
+                            </>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

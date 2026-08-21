@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { requireSession, canEdit } from "@/lib/session"
 import { statisticSchema, idSchema } from "@/lib/validations"
+import { audit } from "@/lib/audit"
 import { revalidatePath } from "next/cache"
 
 type ActionResult = { ok: true; id?: string } | { ok: false; error: string }
@@ -85,21 +86,12 @@ export async function upsertStatistic(input: unknown): Promise<ActionResult> {
           },
         })
 
-  await prisma.auditLog.create({
-    data: {
-      organizationId: ctx.organizationId,
-      actorId: ctx.userId,
-      action: "statistic.upsert",
-      entityType: "statisticRecord",
-      entityId: record.id,
-      metadata: {
-        churchId: data.churchId,
-        year: data.year,
-        month,
-        memberCount: data.memberCount,
-        baptismCount: data.baptismCount,
-      },
-    },
+  await audit(ctx.organizationId, ctx.userId, "statistic.upsert", "statisticRecord", record.id, {
+    churchId: data.churchId,
+    year: data.year,
+    month,
+    memberCount: data.memberCount,
+    baptismCount: data.baptismCount,
   })
 
   revalidatePath(`/churches/${data.churchId}`)
@@ -120,17 +112,15 @@ export async function deleteStatistic(id: string): Promise<ActionResult> {
   if (!record) return { ok: false, error: "Registro no encontrado" }
 
   await prisma.statisticRecord.delete({ where: { id } })
-  await prisma.auditLog.create({
-    data: {
-      organizationId: ctx.organizationId,
-      actorId: ctx.userId,
-      action: "statistic.delete",
-      entityType: "statisticRecord",
-      entityId: id,
-      metadata: { churchId: record.churchId, year: record.year, month: record.month },
-    },
+  await audit(ctx.organizationId, ctx.userId, "statistic.delete", "statisticRecord", id, {
+    churchId: record.churchId,
+    year: record.year,
+    month: record.month,
   })
 
   revalidatePath(`/churches/${record.churchId}`)
+  revalidatePath("/churches")
+  revalidatePath("/districts")
+  revalidatePath("/")
   return { ok: true }
 }

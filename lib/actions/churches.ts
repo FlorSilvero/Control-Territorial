@@ -3,28 +3,10 @@
 import { prisma } from "@/lib/prisma"
 import { requireSession, canEdit } from "@/lib/session"
 import { churchSchema, idSchema } from "@/lib/validations"
+import { audit } from "@/lib/audit"
 import { revalidatePath } from "next/cache"
 
 type ActionResult = { ok: true; id?: string } | { ok: false; error: string }
-
-async function audit(
-  orgId: string,
-  actorId: string,
-  action: string,
-  entityId: string,
-  metadata?: Record<string, unknown>,
-) {
-  await prisma.auditLog.create({
-    data: {
-      organizationId: orgId,
-      actorId,
-      action,
-      entityType: "church",
-      entityId,
-      metadata: metadata ?? undefined,
-    },
-  })
-}
 
 async function assertDistrict(orgId: string, districtId: string) {
   const d = await prisma.district.findFirst({
@@ -55,7 +37,7 @@ export async function createChurch(input: unknown): Promise<ActionResult> {
       updatedById: ctx.userId,
     },
   })
-  await audit(ctx.organizationId, ctx.userId, "church.create", church.id, {
+  await audit(ctx.organizationId, ctx.userId, "church.create", "church", church.id, {
     name: church.name,
   })
 
@@ -91,7 +73,7 @@ export async function updateChurch(id: string, input: unknown): Promise<ActionRe
       updatedById: ctx.userId,
     },
   })
-  await audit(ctx.organizationId, ctx.userId, "church.update", id)
+  await audit(ctx.organizationId, ctx.userId, "church.update", "church", id)
 
   revalidatePath("/churches")
   revalidatePath(`/churches/${id}`)
@@ -109,7 +91,7 @@ export async function archiveChurch(id: string): Promise<ActionResult> {
   if (!existing) return { ok: false, error: "Iglesia no encontrada" }
 
   await prisma.church.update({ where: { id }, data: { archivedAt: new Date() } })
-  await audit(ctx.organizationId, ctx.userId, "church.archive", id)
+  await audit(ctx.organizationId, ctx.userId, "church.archive", "church", id)
 
   revalidatePath("/churches")
   revalidatePath("/archived")
@@ -127,7 +109,7 @@ export async function restoreChurch(id: string): Promise<ActionResult> {
   if (!existing) return { ok: false, error: "Iglesia no encontrada" }
 
   await prisma.church.update({ where: { id }, data: { archivedAt: null } })
-  await audit(ctx.organizationId, ctx.userId, "church.restore", id)
+  await audit(ctx.organizationId, ctx.userId, "church.restore", "church", id)
 
   revalidatePath("/churches")
   revalidatePath("/archived")

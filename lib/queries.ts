@@ -6,6 +6,7 @@ import {
   assignmentForDate,
   assignmentForDateOrEarliest,
   attributeBaptisms,
+  membersAsOf,
   CURRENT_YEAR,
   CURRENT_MONTH,
   type StatRow,
@@ -110,11 +111,11 @@ export async function getDistrictDetail(orgId: string, id: string) {
 
   const currentAssignment = district.assignments.find((a) => a.endDate === null) ?? null
 
-  // Aggregate all district statistics for the history views.
-  const allRows: StatRow[] = district.churches.flatMap((c) => c.statistics as StatRow[])
+  // Grouped per church — see buildYearlyHistory for why this must not be flattened.
+  const rowsByChurch: StatRow[][] = district.churches.map((c) => c.statistics as StatRow[])
 
-  const yearly = buildYearlyHistory(allRows, windows)
-  const monthly = buildMonthlyHistory(allRows, windows)
+  const yearly = buildYearlyHistory(rowsByChurch, windows)
+  const monthly = buildMonthlyHistory(rowsByChurch, windows)
 
   return {
     id: district.id,
@@ -163,24 +164,32 @@ export type MonthlyRow = {
 }
 
 /**
- * Members per year = sum over churches of each church's latest snapshot in that
- * year. Because rows here can span multiple churches, we track the latest
- * snapshot per church per year, then sum. Baptisms = sum within the year.
+ * Both builders take rows GROUPED BY CHURCH (one array per church), not a
+ * flat list. That grouping is what makes the member column correct: members
+ * are a stock, so a period's total is the sum of every church's latest
+ * snapshot as of that period — including churches that didn't report in it.
+ * Flattening first made a church invisible for any period it skipped, so a
+ * district's history table could report a fraction of the member total shown
+ * on its own summary card. Baptisms are a flow and are simply summed.
  */
-function buildYearlyHistory(rows: StatRow[], windows: AssignmentWindow[]): YearlyRow[] {
+function buildYearlyHistory(
+  rowsByChurch: StatRow[][],
+  windows: AssignmentWindow[],
+): YearlyRow[] {
+  const allRows = rowsByChurch.flat()
   // Most recent year first.
-  const years = Array.from(new Set(rows.map((r) => r.year))).sort((a, b) => b - a)
-  // Group rows by "churchKey" is not available here (rows are flattened), so we
-  // approximate members as the sum of the latest-month snapshot in the year.
-  // To do this correctly per church, callers pass rows already per church for
-  // church detail; for district we sum annual snapshots.
+  const years = Array.from(new Set(allRows.map((r) => r.year))).sort((a, b) => b - a)
+
   return years.map((year) => {
-    const yearRows = rows.filter((r) => r.year === year)
-    const baptisms = yearRows.reduce((acc, r) => acc + r.baptismCount, 0)
-    // Members: prefer the latest monthly snapshot; fall back to annual.
-    const members = sumLatestMembers(yearRows)
-    const repDate =
-      year === CURRENT_YEAR ? new Date() : new Date(year, 11, 31)
+    const baptisms = allRows.reduce(
+      (acc, r) => (r.year === year ? acc + r.baptismCount : acc),
+      0,
+    )
+    const members = rowsByChurch.reduce(
+      (acc, churchRows) => acc + (membersAsOf(churchRows, year, 12) ?? 0),
+      0,
+    )
+    const repDate = year === CURRENT_YEAR ? new Date() : new Date(year, 11, 31)
     const a = assignmentForDate(windows, repDate)
     return {
       year,
@@ -191,33 +200,28 @@ function buildYearlyHistory(rows: StatRow[], windows: AssignmentWindow[]): Yearl
   })
 }
 
-function buildMonthlyHistory(rows: StatRow[], windows: AssignmentWindow[]): MonthlyRow[] {
+function buildMonthlyHistory(
+  rowsByChurch: StatRow[][],
+  windows: AssignmentWindow[],
+): MonthlyRow[] {
+  const allRows = rowsByChurch.flat()
   const result: MonthlyRow[] = []
   // Most recent month first.
   for (let month = CURRENT_MONTH; month >= 1; month--) {
-    const monthRows = rows.filter(
-      (r) => r.year === CURRENT_YEAR && r.month === month,
+    const baptisms = allRows.reduce(
+      (acc, r) =>
+        r.year === CURRENT_YEAR && r.month === month ? acc + r.baptismCount : acc,
+      0,
     )
-    const baptisms = monthRows.reduce((acc, r) => acc + r.baptismCount, 0)
-    const members = monthRows.reduce((acc, r) => acc + r.memberCount, 0)
+    const members = rowsByChurch.reduce(
+      (acc, churchRows) => acc + (membersAsOf(churchRows, CURRENT_YEAR, month) ?? 0),
+      0,
+    )
     const repDate = new Date(CURRENT_YEAR, month - 1, 15)
     const a = assignmentForDate(windows, repDate)
     result.push({ month, members, baptisms, pastor: a?.pastor ?? null })
   }
   return result
-}
-
-/** Sum of the highest-month member snapshot present in the row set. */
-function sumLatestMembers(rows: StatRow[]): number {
-  // Rows may belong to several churches; use the max month's records.
-  const monthly = rows.filter((r) => r.month != null)
-  if (monthly.length > 0) {
-    const maxMonth = Math.max(...monthly.map((r) => r.month as number))
-    return monthly
-      .filter((r) => r.month === maxMonth)
-      .reduce((acc, r) => acc + r.memberCount, 0)
-  }
-  return rows.reduce((acc, r) => acc + r.memberCount, 0)
 }
 
 // ---------------------------------------------------------------------------
@@ -290,11 +294,15 @@ export async function getChurchDetail(orgId: string, id: string) {
     pastor: a.pastor,
   }))
 
-  const rows = church.statistics as StatRow[]
-  const s = computeChurchStats(rows)
+  // Keep the full Prisma rows rather than casting to StatRow: the detail table
+  // needs each record's id to edit or delete it, and the cast silently dropped
+  // that field from the type while the value was there all along.
+  const statistics = church.statistics
+  const s = computeChurchStats(statistics)
   const current = church.district.assignments.find((a) => a.endDate === null) ?? null
 
-  const yearly = buildYearlyHistory(rows, windows)
+  // A single church is a one-element group — same builder as the district view.
+  const yearly = buildYearlyHistory([statistics], windows)
 
   return {
     id: church.id,
@@ -307,7 +315,7 @@ export async function getChurchDetail(orgId: string, id: string) {
     currentMembers: s.currentMembers,
     baptismsThisYear: s.baptismsThisYear,
     baptismsTotal: s.baptismsTotal,
-    statistics: rows,
+    statistics,
     yearly,
   }
 }
