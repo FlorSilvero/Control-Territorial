@@ -46,26 +46,26 @@ export function DistrictsListClient({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {canEdit && (
+            <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2 shrink-0">
+              <Download className="size-4" />
+              Importar estadísticas
+            </Button>
+          )}
           <Button
             variant="outline"
             nativeButton={false}
             render={<a href="/api/export/statistics" />}
             className="gap-2 shrink-0"
           >
-            <Download className="size-4" />
+            <Upload className="size-4" />
             Exportar estadísticas
           </Button>
           {canEdit && (
-            <>
-              <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2 shrink-0">
-                <Upload className="size-4" />
-                Importar estadísticas
-              </Button>
-              <Button onClick={() => setCreateOpen(true)} className="gap-2 shrink-0">
-                <Plus className="size-4" />
-                Crear distrito
-              </Button>
-            </>
+            <Button onClick={() => setCreateOpen(true)} className="gap-2 shrink-0">
+              <Plus className="size-4" />
+              Crear distrito
+            </Button>
           )}
         </div>
       </div>

@@ -43,14 +43,14 @@ export default async function DashboardPage() {
       value: data.kpis.members.toLocaleString("es-AR"),
       icon: Users,
       description: "Snapshot más reciente",
-      href: "/churches",
+      href: null,
     },
     {
       title: "Bautismos Acumulados",
       value: data.kpis.baptisms.toLocaleString("es-AR"),
       icon: Waves,
       description: "Histórico acumulado",
-      href: "/districts",
+      href: null,
     },
   ]
 
@@ -68,22 +68,40 @@ export default async function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {kpis.map((kpi) => {
           const Icon = kpi.icon
+          const cardBody = (
+            <Card
+              className={
+                kpi.href ? "transition-all hover:border-primary/50 hover:shadow-sm" : undefined
+              }
+            >
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  {kpi.title}
+                </CardTitle>
+                <div
+                  className={
+                    kpi.href
+                      ? "rounded-md bg-primary/10 p-1.5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                      : "rounded-md bg-primary/10 p-1.5 text-primary"
+                  }
+                >
+                  <Icon className="size-4" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="font-serif text-2xl font-bold">{kpi.value}</div>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{kpi.description}</p>
+              </CardContent>
+            </Card>
+          )
+
+          if (!kpi.href) {
+            return <div key={kpi.title}>{cardBody}</div>
+          }
+
           return (
             <Link key={kpi.title} href={kpi.href} className="block group">
-              <Card className="transition-all hover:border-primary/50 hover:shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-xs font-medium text-muted-foreground">
-                    {kpi.title}
-                  </CardTitle>
-                  <div className="rounded-md bg-primary/10 p-1.5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                    <Icon className="size-4" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="font-serif text-2xl font-bold">{kpi.value}</div>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{kpi.description}</p>
-                </CardContent>
-              </Card>
+              {cardBody}
             </Link>
           )
         })}

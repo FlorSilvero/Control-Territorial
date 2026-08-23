@@ -59,8 +59,8 @@ export function StatisticDialog({
 
   const [year, setYear] = useState<number>(initialRecord?.year ?? currentYear)
   const [month, setMonth] = useState<number>(initialRecord?.month ?? currentMonth)
-  const [memberCount, setMemberCount] = useState<number>(initialRecord?.memberCount ?? 0)
-  const [baptismCount, setBaptismCount] = useState<number>(initialRecord?.baptismCount ?? 0)
+  const [memberCount, setMemberCount] = useState<string>(String(initialRecord?.memberCount ?? 0))
+  const [baptismCount, setBaptismCount] = useState<string>(String(initialRecord?.baptismCount ?? 0))
 
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -85,8 +85,8 @@ export function StatisticDialog({
       setYear(y)
       setMonth(m)
       const match = isEditingAnnual ? initialRecord : findMatch(y, m) ?? initialRecord
-      setMemberCount(match?.memberCount ?? 0)
-      setBaptismCount(match?.baptismCount ?? 0)
+      setMemberCount(String(match?.memberCount ?? 0))
+      setBaptismCount(String(match?.baptismCount ?? 0))
     }
   }
 
@@ -98,15 +98,15 @@ export function StatisticDialog({
     setYear(newYear)
     if (isEditingAnnual) return
     const match = findMatch(newYear, month)
-    setMemberCount(match?.memberCount ?? 0)
-    setBaptismCount(match?.baptismCount ?? 0)
+    setMemberCount(String(match?.memberCount ?? 0))
+    setBaptismCount(String(match?.baptismCount ?? 0))
   }
 
   const handleMonthChange = (newMonth: number) => {
     setMonth(newMonth)
     const match = findMatch(year, newMonth)
-    setMemberCount(match?.memberCount ?? 0)
-    setBaptismCount(match?.baptismCount ?? 0)
+    setMemberCount(String(match?.memberCount ?? 0))
+    setBaptismCount(String(match?.baptismCount ?? 0))
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -117,8 +117,8 @@ export function StatisticDialog({
         period: isEditingAnnual ? "ANNUAL" : "MONTHLY",
         year: Number(year),
         month: isEditingAnnual ? null : Number(month),
-        memberCount: Number(memberCount),
-        baptismCount: Number(baptismCount),
+        memberCount: Number(memberCount) || 0,
+        baptismCount: Number(baptismCount) || 0,
       })
 
       if (res.ok) {
@@ -147,12 +147,11 @@ export function StatisticDialog({
               <Label htmlFor="stat-year">Año *</Label>
               <Input
                 id="stat-year"
-                type="number"
-                min={1900}
-                max={currentYear + 1}
+                type="text"
                 value={year}
-                onChange={(e) => handleYearChange(Number(e.target.value))}
+                onChange={(e) => handleYearChange(Number(e.target.value.replace(/\D/g, "")) || 0)}
                 disabled={isEditingAnnual}
+                autoComplete="off"
                 required
               />
             </div>
@@ -192,26 +191,26 @@ export function StatisticDialog({
               <Label htmlFor="stat-members">Cantidad de Miembros *</Label>
               <Input
                 id="stat-members"
-                type="number"
-                min={0}
+                type="text"
                 value={memberCount}
-                onChange={(e) => setMemberCount(Number(e.target.value))}
+                onChange={(e) => setMemberCount(e.target.value.replace(/\D/g, ""))}
+                onFocus={(e) => e.target.select()}
+                autoComplete="off"
                 required
               />
-              <p className="text-[10px] text-muted-foreground">Snapshot actual de la iglesia.</p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="stat-baptisms">Bautismos en el Período *</Label>
               <Input
                 id="stat-baptisms"
-                type="number"
-                min={0}
+                type="text"
                 value={baptismCount}
-                onChange={(e) => setBaptismCount(Number(e.target.value))}
+                onChange={(e) => setBaptismCount(e.target.value.replace(/\D/g, ""))}
+                onFocus={(e) => e.target.select()}
+                autoComplete="off"
                 required
               />
-              <p className="text-[10px] text-muted-foreground">Flujo acumulado del período.</p>
             </div>
           </div>
 
