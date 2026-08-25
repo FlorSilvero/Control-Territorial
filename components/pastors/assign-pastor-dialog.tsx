@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select"
 import { assignPastor } from "@/lib/actions/pastors"
 import { toast } from "sonner"
+import { TriangleAlert } from "lucide-react"
 
 export function AssignPastorDialog({
   open,
@@ -40,7 +41,7 @@ export function AssignPastorDialog({
   initialPastorId?: string
   defaultDistrictId?: string
   pastorOptions: { id: string; name: string }[]
-  districtOptions: { id: string; name: string }[]
+  districtOptions: { id: string; name: string; currentPastor?: { id: string; name: string } | null }[]
 }) {
   const [pastorId, setPastorId] = useState(defaultPastorId ?? initialPastorId ?? "")
   const [districtId, setDistrictId] = useState(defaultDistrictId ?? "")
@@ -50,6 +51,10 @@ export function AssignPastorDialog({
   const router = useRouter()
   const isPastorLocked = Boolean(defaultPastorId)
   const isDistrictLocked = Boolean(defaultDistrictId)
+
+  const selectedDistrict = districtOptions.find((d) => d.id === districtId)
+  const currentPastor = selectedDistrict?.currentPastor
+  const showReplaceWarning = Boolean(currentPastor && currentPastor.id !== pastorId)
 
   // The dialog stays mounted across opens (only `open` toggles), so its fields
   // have to be re-synced from props every time it opens. Doing that during
@@ -147,6 +152,17 @@ export function AssignPastorDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {showReplaceWarning && currentPastor && (
+            <div className="flex items-start gap-2.5 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
+              <TriangleAlert className="size-4 shrink-0 mt-0.5" />
+              <p>
+                Este distrito ya tiene un pastor asignado actualmente:{" "}
+                <span className="font-semibold">{currentPastor.name}</span>. Su gestión se cerrará
+                y será reemplazado por el nuevo pastor seleccionado.
+              </p>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="assign-start-date">Fecha de inicio de la nueva gestión *</Label>

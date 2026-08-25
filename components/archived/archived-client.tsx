@@ -1,9 +1,10 @@
 "use client"
 
-import { useTransition } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Table,
@@ -17,7 +18,8 @@ import { restoreDistrict } from "@/lib/actions/districts"
 import { restoreChurch } from "@/lib/actions/churches"
 import { restorePastor } from "@/lib/actions/pastors"
 import { formatDate } from "@/lib/date-utils"
-import { MapPinned, Church, Users, RotateCcw } from "lucide-react"
+import { normalizeText } from "@/lib/utils"
+import { MapPinned, Church, Users, RotateCcw, Search } from "lucide-react"
 import { toast } from "sonner"
 import type { listDistricts, listChurches, listPastors } from "@/lib/queries"
 
@@ -40,6 +42,14 @@ export function ArchivedClient({
 }) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const [search, setSearch] = useState("")
+
+  const query = normalizeText(search)
+  const filteredDistricts = data.districts.filter((d) => normalizeText(d.name).includes(query))
+  const filteredChurches = data.churches.filter((c) => normalizeText(c.name).includes(query))
+  const filteredPastors = data.pastors.filter((p) =>
+    normalizeText(`${p.firstName} ${p.lastName}`).includes(query),
+  )
 
   const handleRestoreDistrict = (id: string, name: string) => {
     if (!confirm(`¿Restaurar el distrito ${name}?`)) return
@@ -89,19 +99,30 @@ export function ArchivedClient({
         </p>
       </div>
 
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Buscar por nombre..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9 sm:max-w-sm"
+        />
+      </div>
+
       <Tabs defaultValue="districts" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3 max-w-md">
           <TabsTrigger value="districts" className="gap-2">
             <MapPinned className="size-4" />
-            Distritos ({data.districts.length})
+            Distritos ({filteredDistricts.length})
           </TabsTrigger>
           <TabsTrigger value="churches" className="gap-2">
             <Church className="size-4" />
-            Iglesias ({data.churches.length})
+            Iglesias ({filteredChurches.length})
           </TabsTrigger>
           <TabsTrigger value="pastors" className="gap-2">
             <Users className="size-4" />
-            Pastores ({data.pastors.length})
+            Pastores ({filteredPastors.length})
           </TabsTrigger>
         </TabsList>
 
@@ -119,6 +140,10 @@ export function ArchivedClient({
                 <div className="text-center py-8 text-sm text-muted-foreground">
                   No hay distritos archivados.
                 </div>
+              ) : filteredDistricts.length === 0 ? (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  No se encontraron distritos que coincidan con la búsqueda.
+                </div>
               ) : (
                 <Table>
                   <TableHeader>
@@ -129,7 +154,7 @@ export function ArchivedClient({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.districts.map((d) => (
+                    {filteredDistricts.map((d) => (
                       <TableRow key={d.id}>
                         <TableCell className="font-semibold">{d.name}</TableCell>
                         <TableCell className="text-muted-foreground">
@@ -172,6 +197,10 @@ export function ArchivedClient({
                 <div className="text-center py-8 text-sm text-muted-foreground">
                   No hay iglesias archivadas.
                 </div>
+              ) : filteredChurches.length === 0 ? (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  No se encontraron iglesias que coincidan con la búsqueda.
+                </div>
               ) : (
                 <Table>
                   <TableHeader>
@@ -183,7 +212,7 @@ export function ArchivedClient({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.churches.map((c) => (
+                    {filteredChurches.map((c) => (
                       <TableRow key={c.id}>
                         <TableCell className="font-semibold">{c.name}</TableCell>
                         <TableCell>{c.district?.name ?? "—"}</TableCell>
@@ -227,6 +256,10 @@ export function ArchivedClient({
                 <div className="text-center py-8 text-sm text-muted-foreground">
                   No hay pastores archivados.
                 </div>
+              ) : filteredPastors.length === 0 ? (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  No se encontraron pastores que coincidan con la búsqueda.
+                </div>
               ) : (
                 <Table>
                   <TableHeader>
@@ -238,7 +271,7 @@ export function ArchivedClient({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.pastors.map((p) => {
+                    {filteredPastors.map((p) => {
                       const name = `${p.firstName} ${p.lastName}`
                       return (
                         <TableRow key={p.id}>

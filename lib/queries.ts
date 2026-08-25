@@ -569,6 +569,7 @@ export type SearchResult = {
   type: "district" | "church" | "pastor"
   label: string
   sublabel: string
+  archived: boolean
 }
 
 export async function globalSearch(orgId: string, q: string): Promise<SearchResult[]> {
@@ -576,52 +577,90 @@ export async function globalSearch(orgId: string, q: string): Promise<SearchResu
   if (!term) return []
 
   // Diacritics can't be stripped inside a Postgres ILIKE via Prisma, so we
-  // fetch the tenant's active rows (small per-org scale) and match on
-  // normalized text in JS instead — "Jose" must find "José".
+  // fetch the tenant's rows (small per-org scale) and match on normalized
+  // text in JS instead — "Jose" must find "José".
   const [districts, churches, pastors] = await Promise.all([
     prisma.district.findMany({
-      where: { organizationId: orgId, archivedAt: null },
-      select: { id: true, name: true },
+      where: { organizationId: orgId },
+      select: { id: true, name: true, archivedAt: true },
     }),
     prisma.church.findMany({
-      where: { organizationId: orgId, archivedAt: null },
-      select: { id: true, name: true, district: { select: { name: true } } },
+      where: { organizationId: orgId },
+      select: { id: true, name: true, archivedAt: true, district: { select: { name: true } } },
     }),
     prisma.pastor.findMany({
-      where: { organizationId: orgId, archivedAt: null },
-      select: { id: true, firstName: true, lastName: true },
+      where: { organizationId: orgId },
+      select: { id: true, firstName: true, lastName: true, archivedAt: true },
     }),
   ])
 
-  return [
+  const active: SearchResult[] = [
     ...districts
-      .filter((d) => normalizeText(d.name).includes(term))
+      .filter((d) => d.archivedAt === null && normalizeText(d.name).includes(term))
       .slice(0, 5)
       .map((d) => ({
         id: d.id,
         type: "district" as const,
         label: d.name,
         sublabel: "Distrito",
+        archived: false,
       })),
     ...churches
-      .filter((c) => normalizeText(c.name).includes(term))
+      .filter((c) => c.archivedAt === null && normalizeText(c.name).includes(term))
       .slice(0, 5)
       .map((c) => ({
         id: c.id,
         type: "church" as const,
         label: c.name,
         sublabel: `Iglesia · ${c.district.name}`,
+        archived: false,
       })),
     ...pastors
-      .filter((p) => normalizeText(`${p.firstName} ${p.lastName}`).includes(term))
+      .filter((p) => p.archivedAt === null && normalizeText(`${p.firstName} ${p.lastName}`).includes(term))
       .slice(0, 5)
       .map((p) => ({
         id: p.id,
         type: "pastor" as const,
         label: `${p.firstName} ${p.lastName}`,
         sublabel: "Pastor",
+        archived: false,
       })),
   ]
+
+  const archived: SearchResult[] = [
+    ...districts
+      .filter((d) => d.archivedAt !== null && normalizeText(d.name).includes(term))
+      .slice(0, 5)
+      .map((d) => ({
+        id: d.id,
+        type: "district" as const,
+        label: d.name,
+        sublabel: "Distrito",
+        archived: true,
+      })),
+    ...churches
+      .filter((c) => c.archivedAt !== null && normalizeText(c.name).includes(term))
+      .slice(0, 5)
+      .map((c) => ({
+        id: c.id,
+        type: "church" as const,
+        label: c.name,
+        sublabel: `Iglesia · ${c.district.name}`,
+        archived: true,
+      })),
+    ...pastors
+      .filter((p) => p.archivedAt !== null && normalizeText(`${p.firstName} ${p.lastName}`).includes(term))
+      .slice(0, 5)
+      .map((p) => ({
+        id: p.id,
+        type: "pastor" as const,
+        label: `${p.firstName} ${p.lastName}`,
+        sublabel: "Pastor",
+        archived: true,
+      })),
+  ]
+
+  return [...active, ...archived]
 }
 
 // ---------------------------------------------------------------------------
@@ -629,10 +668,26 @@ export async function globalSearch(orgId: string, q: string): Promise<SearchResu
 // ---------------------------------------------------------------------------
 
 export async function getDistrictOptions(orgId: string) {
-  return prisma.district.findMany({
+  const districts = await prisma.district.findMany({
     where: { organizationId: orgId, archivedAt: null },
-    select: { id: true, name: true },
+    select: {
+      id: true,
+      name: true,
+      assignments: {
+        where: { endDate: null },
+        select: { pastor: { select: { id: true, firstName: true, lastName: true } } },
+        take: 1,
+      },
+    },
     orderBy: { name: "asc" },
+  })
+  return districts.map((d) => {
+    const pastor = d.assignments[0]?.pastor
+    return {
+      id: d.id,
+      name: d.name,
+      currentPastor: pastor ? { id: pastor.id, name: `${pastor.firstName} ${pastor.lastName}` } : null,
+    }
   })
 }
 

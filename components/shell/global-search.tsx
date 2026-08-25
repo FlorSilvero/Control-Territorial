@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { searchAction } from "@/lib/actions/search"
 import type { SearchResult } from "@/lib/queries"
-import { Search, MapPinned, Church, Users, Loader2 } from "lucide-react"
+import { Search, MapPinned, Church, Users, Loader2, Archive } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const ICONS = {
@@ -107,10 +107,19 @@ export function GlobalSearch() {
     }
   }
 
-  const grouped = (["district", "church", "pastor"] as const).map((type) => ({
-    type,
-    items: results.filter((r) => r.type === type),
-  })).filter((g) => g.items.length > 0)
+  const activeGroups = (["district", "church", "pastor"] as const)
+    .map((type) => ({
+      key: type as string,
+      label: LABELS[type],
+      items: results.filter((r) => r.type === type && !r.archived),
+    }))
+    .filter((g) => g.items.length > 0)
+
+  const archivedItems = results.filter((r) => r.archived)
+
+  const grouped = archivedItems.length > 0
+    ? [...activeGroups, { key: "archived", label: "Archivados", items: archivedItems }]
+    : activeGroups
 
   // Build a flat index to know position of each item for keyboard nav
   let flatIndex = 0
@@ -166,11 +175,14 @@ export function GlobalSearch() {
           ) : (
             <div className="max-h-72 overflow-y-auto py-1">
               {groupsWithIndex.map((group) => (
-                <div key={group.type}>
+                <div key={group.key}>
                   {/* Group heading */}
-                  <div className="px-3 py-1.5">
+                  <div className="flex items-center gap-1 px-3 py-1.5">
+                    {group.key === "archived" && (
+                      <Archive className="size-3 text-muted-foreground" />
+                    )}
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      {LABELS[group.type]}
+                      {group.label}
                     </span>
                   </div>
                   {group.items.map((r) => {
@@ -186,6 +198,7 @@ export function GlobalSearch() {
                         onMouseEnter={() => setActiveIndex(r.flatIdx)}
                         className={cn(
                           "flex w-full items-center gap-2 px-3 py-2 text-sm text-left transition-colors",
+                          r.archived && "opacity-70",
                           isActive
                             ? "bg-accent text-accent-foreground"
                             : "hover:bg-accent/60",

@@ -4,9 +4,11 @@ import { useState } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { DistrictDialog } from "@/components/districts/district-dialog"
 import { ImportDistrictStatsDialog } from "@/components/districts/import-district-stats-dialog"
-import { MapPinned, Church, Users, Waves, UserCheck, Plus, Upload, Download } from "lucide-react"
+import { normalizeText } from "@/lib/utils"
+import { MapPinned, Church, Users, Waves, UserCheck, Plus, Upload, Download, Search } from "lucide-react"
 
 type DistrictItem = {
   id: string
@@ -34,6 +36,16 @@ export function DistrictsListClient({
 }) {
   const [createOpen, setCreateOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
+  const [search, setSearch] = useState("")
+
+  const filteredDistricts = districts.filter((d) => {
+    const query = normalizeText(search)
+    const matchesName = normalizeText(d.name).includes(query)
+    const matchesPastor = d.currentPastor
+      ? normalizeText(`${d.currentPastor.firstName} ${d.currentPastor.lastName}`).includes(query)
+      : false
+    return matchesName || matchesPastor
+  })
 
   return (
     <div className="space-y-6">
@@ -70,6 +82,19 @@ export function DistrictsListClient({
         </div>
       </div>
 
+      {/* Search Bar */}
+      {districts.length > 0 && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Buscar distrito por nombre o pastor..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 sm:max-w-sm"
+          />
+        </div>
+      )}
+
       {/* Grid of Cards */}
       {districts.length === 0 ? (
         <Card className="flex flex-col items-center justify-center p-12 text-center">
@@ -87,9 +112,19 @@ export function DistrictsListClient({
             </Button>
           )}
         </Card>
+      ) : filteredDistricts.length === 0 ? (
+        <Card className="flex flex-col items-center justify-center p-12 text-center">
+          <div className="rounded-full bg-muted p-4 mb-4">
+            <MapPinned className="size-8 text-muted-foreground" />
+          </div>
+          <h3 className="font-serif text-lg font-semibold">Sin resultados</h3>
+          <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+            No se encontraron distritos que coincidan con la búsqueda.
+          </p>
+        </Card>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {districts.map((d) => {
+          {filteredDistricts.map((d) => {
             const pastorName = d.currentPastor
               ? `${d.currentPastor.firstName} ${d.currentPastor.lastName}`
               : "Sin pastor"

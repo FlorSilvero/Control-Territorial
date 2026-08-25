@@ -124,9 +124,11 @@ export function PastorDialog({
               <Label htmlFor="pastor-phone">Teléfono / Celular</Label>
               <Input
                 id="pastor-phone"
+                type="tel"
+                inputMode="tel"
                 placeholder="+54 9..."
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(e.target.value.replace(/[^0-9+\-()\s]/g, ""))}
               />
             </div>
           </div>
