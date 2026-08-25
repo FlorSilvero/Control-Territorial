@@ -425,6 +425,8 @@ export async function getPastorDetail(orgId: string, id: string) {
     lastName: pastor.lastName,
     email: pastor.email,
     phone: pastor.phone,
+    spouseName: pastor.spouseName,
+    childrenNames: pastor.childrenNames,
     notes: pastor.notes,
     archivedAt: pastor.archivedAt,
     currentDistrict: current
@@ -641,4 +643,13 @@ export async function getPastorOptions(orgId: string) {
     orderBy: { lastName: "asc" },
   })
   return pastors.map((p) => ({ id: p.id, name: `${p.firstName} ${p.lastName}` }))
+}
+
+export async function getChurchOptions(orgId: string) {
+  const churches = await prisma.church.findMany({
+    where: { organizationId: orgId, archivedAt: null },
+    select: { id: true, name: true, district: { select: { name: true } } },
+    orderBy: { name: "asc" },
+  })
+  return churches.map((c) => ({ id: c.id, name: c.name, district: c.district.name }))
 }

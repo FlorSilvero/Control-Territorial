@@ -157,6 +157,8 @@ model Pastor {
   lastName  String
   email     String?
   phone     String?
+  spouseName String?
+  childrenNames String?
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

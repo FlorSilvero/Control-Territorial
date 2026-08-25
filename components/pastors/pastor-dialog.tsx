@@ -30,6 +30,8 @@ export function PastorDialog({
     lastName: string
     email?: string | null
     phone?: string | null
+    spouseName?: string | null
+    childrenNames?: string | null
     notes?: string | null
   } | null
 }) {
@@ -37,6 +39,8 @@ export function PastorDialog({
   const [lastName, setLastName] = useState(pastor?.lastName ?? "")
   const [email, setEmail] = useState(pastor?.email ?? "")
   const [phone, setPhone] = useState(pastor?.phone ?? "")
+  const [spouseName, setSpouseName] = useState(pastor?.spouseName ?? "")
+  const [childrenNames, setChildrenNames] = useState(pastor?.childrenNames ?? "")
   const [notes, setNotes] = useState(pastor?.notes ?? "")
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -46,9 +50,8 @@ export function PastorDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     startTransition(async () => {
-      const res = isEditing
-        ? await updatePastor(pastor.id, { firstName, lastName, email, phone, notes })
-        : await createPastor({ firstName, lastName, email, phone, notes })
+      const data = { firstName, lastName, email, phone, spouseName, childrenNames, notes }
+      const res = isEditing ? await updatePastor(pastor.id, data) : await createPastor(data)
 
       if (res.ok) {
         toast.success(isEditing ? "Pastor actualizado" : "Pastor creado con éxito")
@@ -58,6 +61,8 @@ export function PastorDialog({
           setLastName("")
           setEmail("")
           setPhone("")
+          setSpouseName("")
+          setChildrenNames("")
           setNotes("")
         }
         router.refresh()
@@ -122,6 +127,27 @@ export function PastorDialog({
                 placeholder="+54 9..."
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="pastor-spouse">Nombre de la esposa</Label>
+              <Input
+                id="pastor-spouse"
+                placeholder="Ej. María Pérez"
+                value={spouseName}
+                onChange={(e) => setSpouseName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pastor-children">Hijos</Label>
+              <Input
+                id="pastor-children"
+                placeholder="Nombres separados por coma"
+                value={childrenNames}
+                onChange={(e) => setChildrenNames(e.target.value)}
               />
             </div>
           </div>

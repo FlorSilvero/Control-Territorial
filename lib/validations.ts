@@ -25,6 +25,8 @@ export const pastorSchema = z.object({
   lastName: z.string().trim().min(2, "El apellido debe tener al menos 2 caracteres").max(80),
   email: z.string().trim().max(254).email("Email inválido").optional().or(z.literal("")),
   phone: z.string().trim().max(40).optional().or(z.literal("")),
+  spouseName: z.string().trim().max(160).optional().or(z.literal("")),
+  childrenNames: z.string().trim().max(1000).optional().or(z.literal("")),
   notes: z.string().trim().max(1000).optional().or(z.literal("")),
 })
 export type PastorInput = z.infer<typeof pastorSchema>

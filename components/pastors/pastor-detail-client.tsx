@@ -28,6 +28,9 @@ import {
   Calendar,
   Clock,
   Waves,
+  Users,
+  Heart,
+  Baby,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -37,6 +40,8 @@ type PastorDetailData = {
   lastName: string
   email?: string | null
   phone?: string | null
+  spouseName?: string | null
+  childrenNames?: string | null
   notes?: string | null
   archivedAt?: Date | null
   currentDistrict: {
@@ -87,6 +92,12 @@ export function PastorDetailClient({
   }
 
   const totalBaptismsAcrossTenures = pastor.assignments.reduce((acc, a) => acc + a.baptisms, 0)
+
+  const childrenList = (pastor.childrenNames ?? "")
+    .split(/[,\n]/)
+    .map((n) => n.trim())
+    .filter(Boolean)
+  const hasFamilyInfo = !!pastor.spouseName || childrenList.length > 0
 
   return (
     <div className="space-y-6">
@@ -207,6 +218,46 @@ export function PastorDetailClient({
           </CardContent>
         </Card>
       </div>
+
+      {/* FAMILIA PASTORAL */}
+      {hasFamilyInfo && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-serif text-xl font-bold flex items-center gap-2">
+              <Users className="size-5 text-primary" />
+              Familia Pastoral
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-6">
+            {pastor.spouseName && (
+              <div className="flex items-center gap-2">
+                <Heart className="size-4 text-primary shrink-0" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Esposa</p>
+                  <p className="text-sm font-medium">{pastor.spouseName}</p>
+                </div>
+              </div>
+            )}
+            {childrenList.length > 0 && (
+              <div className="flex items-start gap-2">
+                <Baby className="size-4 text-primary shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    {childrenList.length === 1 ? "Hijo/a" : "Hijos/as"}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {childrenList.map((name, i) => (
+                      <Badge key={i} variant="secondary">
+                        {name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* HISTORIAL DEL PASTOR (ASSIGNMENTS CHRONOLOGY) */}
       <Card>
