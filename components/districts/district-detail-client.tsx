@@ -6,6 +6,17 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Breadcrumb,
@@ -94,6 +105,7 @@ export function DistrictDetailClient({
   const [editOpen, setEditOpen] = useState(false)
   const [churchCreateOpen, setChurchCreateOpen] = useState(false)
   const [assignOpen, setAssignOpen] = useState(false)
+  const [archiveOpen, setArchiveOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
@@ -102,7 +114,6 @@ export function DistrictDetailClient({
     : "Sin pastor"
 
   const handleArchive = () => {
-    if (!confirm(`¿Estás seguro de archivar el distrito ${district.name}?`)) return
     startTransition(async () => {
       const res = await archiveDistrict(district.id)
       if (res.ok) {
@@ -154,7 +165,7 @@ export function DistrictDetailClient({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleArchive}
+              onClick={() => setArchiveOpen(true)}
               disabled={isPending}
               className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
@@ -172,7 +183,18 @@ export function DistrictDetailClient({
             <CardTitle className="text-xs font-medium text-muted-foreground">Pastor Actual</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="font-serif text-lg font-bold truncate">{currentPastorName}</div>
+            <div className="font-serif text-lg font-bold truncate">
+              {district.currentAssignment ? (
+                <Link
+                  href={`/pastors/${district.currentAssignment.pastor.id}`}
+                  className="hover:underline"
+                >
+                  {currentPastorName}
+                </Link>
+              ) : (
+                currentPastorName
+              )}
+            </div>
             {district.currentAssignment ? (
               <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
                 <Calendar className="size-3" />
@@ -290,7 +312,16 @@ export function DistrictDetailClient({
                     </div>
                     <div className="flex items-center justify-between text-sm py-1 border-b">
                       <span className="text-muted-foreground">Pastor actual:</span>
-                      <span className="font-medium">{currentPastorName}</span>
+                      {district.currentAssignment ? (
+                        <Link
+                          href={`/pastors/${district.currentAssignment.pastor.id}`}
+                          className="font-medium hover:underline"
+                        >
+                          {currentPastorName}
+                        </Link>
+                      ) : (
+                        <span className="font-medium">{currentPastorName}</span>
+                      )}
                     </div>
                     <div className="flex items-center justify-between text-sm py-1 border-b">
                       <span className="text-muted-foreground">Miembros actuales:</span>
@@ -338,9 +369,12 @@ export function DistrictDetailClient({
                         <TableCell className="font-serif font-bold">{row.year}</TableCell>
                         <TableCell>
                           {row.pastor ? (
-                            <span className="font-medium">
+                            <Link
+                              href={`/pastors/${row.pastor.id}`}
+                              className="font-medium hover:underline"
+                            >
                               {row.pastor.firstName} {row.pastor.lastName}
-                            </span>
+                            </Link>
                           ) : (
                             <span className="text-muted-foreground italic">Sin pastor asignado</span>
                           )}
@@ -390,9 +424,9 @@ export function DistrictDetailClient({
                         </TableCell>
                         <TableCell>
                           {row.pastor ? (
-                            <span>
+                            <Link href={`/pastors/${row.pastor.id}`} className="hover:underline">
                               {row.pastor.firstName} {row.pastor.lastName}
-                            </span>
+                            </Link>
                           ) : (
                             <span className="text-muted-foreground italic">Sin pastor</span>
                           )}
@@ -434,9 +468,12 @@ export function DistrictDetailClient({
                           }`}
                         />
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                          <span className="font-medium text-base">
+                          <Link
+                            href={`/pastors/${a.pastor.id}`}
+                            className="font-medium text-base hover:underline"
+                          >
                             {a.pastor.firstName} {a.pastor.lastName}
-                          </span>
+                          </Link>
                           {isActive ? (
                             <Badge variant="default" className="w-fit">
                               Actualmente en gestión
@@ -478,6 +515,31 @@ export function DistrictDetailClient({
         pastorOptions={pastorOptions}
         districtOptions={districtOptions}
       />
+
+      <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia className="bg-destructive/10 text-destructive">
+              <Archive />
+            </AlertDialogMedia>
+            <AlertDialogTitle>Archivar distrito</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Estás seguro de archivar <strong>{district.name}</strong>? Podrás encontrarlo más
+              adelante en la sección de archivados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleArchive}
+              disabled={isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isPending ? "Archivando..." : "Archivar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

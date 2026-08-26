@@ -7,6 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -73,13 +84,13 @@ export function PastorDetailClient({
 }) {
   const [editOpen, setEditOpen] = useState(false)
   const [assignOpen, setAssignOpen] = useState(false)
+  const [archiveOpen, setArchiveOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
   const fullName = `${pastor.firstName} ${pastor.lastName}`
 
   const handleArchive = () => {
-    if (!confirm(`¿Estás seguro de archivar al pastor ${fullName}?`)) return
     startTransition(async () => {
       const res = await archivePastor(pastor.id)
       if (res.ok) {
@@ -158,7 +169,7 @@ export function PastorDetailClient({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleArchive}
+              onClick={() => setArchiveOpen(true)}
               disabled={isPending}
               className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
@@ -357,6 +368,31 @@ export function PastorDetailClient({
         pastorOptions={pastorOptions}
         districtOptions={districtOptions}
       />
+
+      <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia className="bg-destructive/10 text-destructive">
+              <Archive />
+            </AlertDialogMedia>
+            <AlertDialogTitle>Archivar pastor</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Estás seguro de archivar a <strong>{fullName}</strong>? Podrás encontrarlo más
+              adelante en la sección de archivados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleArchive}
+              disabled={isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isPending ? "Archivando..." : "Archivar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

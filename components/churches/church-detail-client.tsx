@@ -6,6 +6,17 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Breadcrumb,
@@ -77,6 +88,7 @@ export function ChurchDetailClient({
 }) {
   const [editOpen, setEditOpen] = useState(false)
   const [statOpen, setStatOpen] = useState(false)
+  const [archiveOpen, setArchiveOpen] = useState(false)
   const [editingRecord, setEditingRecord] = useState<StatisticRow | null>(null)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -86,7 +98,6 @@ export function ChurchDetailClient({
     : "Sin pastor"
 
   const handleArchive = () => {
-    if (!confirm(`¿Estás seguro de archivar la iglesia ${church.name}?`)) return
     startTransition(async () => {
       const res = await archiveChurch(church.id)
       if (res.ok) {
@@ -173,7 +184,7 @@ export function ChurchDetailClient({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleArchive}
+              onClick={() => setArchiveOpen(true)}
               disabled={isPending}
               className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
@@ -188,7 +199,7 @@ export function ChurchDetailClient({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Distrito Pastoral</CardTitle>
+            <CardTitle className="text-sm font-semibold">Distrito Pastoral</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="font-serif text-lg font-bold truncate">{church.district.name}</div>
@@ -198,7 +209,7 @@ export function ChurchDetailClient({
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Pastor Actual</CardTitle>
+            <CardTitle className="text-sm font-semibold">Pastor Actual</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="font-serif text-lg font-bold truncate">{pastorName}</div>
@@ -208,7 +219,7 @@ export function ChurchDetailClient({
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Miembros Actuales</CardTitle>
+            <CardTitle className="text-sm font-semibold">Miembros Actuales</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="font-serif text-2xl font-bold">{church.currentMembers}</div>
@@ -218,12 +229,12 @@ export function ChurchDetailClient({
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Bautismos Acumulados</CardTitle>
+            <CardTitle className="text-sm font-semibold">Bautismos Acumulados del Año</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="font-serif text-2xl font-bold">{church.baptismsTotal}</div>
+            <div className="font-serif text-2xl font-bold">{church.baptismsThisYear}</div>
             <p className="text-[11px] text-muted-foreground mt-1">
-              {church.baptismsThisYear} bautismos este año
+              {church.baptismsTotal} bautismos históricos
             </p>
           </CardContent>
         </Card>
@@ -245,19 +256,11 @@ export function ChurchDetailClient({
         {/* YEARLY TAB */}
         <TabsContent value="yearly" className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="font-serif text-lg font-bold">Evolución Histórica por Año</CardTitle>
-                <CardDescription>
-                  Muestra la cantidad de miembros, bautismos y el pastor a cargo durante cada período anual.
-                </CardDescription>
-              </div>
-              {canEdit && (
-                <Button size="sm" variant="outline" onClick={openNewStat} className="gap-1.5">
-                  <Plus className="size-3.5" />
-                  Registrar dato
-                </Button>
-              )}
+            <CardHeader>
+              <CardTitle className="font-serif text-lg font-bold">Evolución Histórica por Año</CardTitle>
+              <CardDescription>
+                Muestra la cantidad de miembros, bautismos y el pastor a cargo durante cada período anual.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {church.yearly.length === 0 ? (
@@ -303,19 +306,11 @@ export function ChurchDetailClient({
         {/* MONTHLY TAB — full editable ledger of every statistic record */}
         <TabsContent value="monthly" className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="font-serif text-lg font-bold">Desglose Mensual</CardTitle>
-                <CardDescription>
-                  Todos los registros ingresados, del más reciente al más antiguo.
-                </CardDescription>
-              </div>
-              {canEdit && (
-                <Button size="sm" variant="outline" onClick={openNewStat} className="gap-1.5">
-                  <Plus className="size-3.5" />
-                  Registrar mes
-                </Button>
-              )}
+            <CardHeader>
+              <CardTitle className="font-serif text-lg font-bold">Desglose Mensual</CardTitle>
+              <CardDescription>
+                Todos los registros ingresados, del más reciente al más antiguo.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {church.statistics.length === 0 ? (
@@ -396,6 +391,31 @@ export function ChurchDetailClient({
         initialRecord={editingRecord}
         existingRecords={church.statistics}
       />
+
+      <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia className="bg-destructive/10 text-destructive">
+              <Archive />
+            </AlertDialogMedia>
+            <AlertDialogTitle>Archivar iglesia</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Estás seguro de archivar <strong>{church.name}</strong>? Podrás encontrarla más
+              adelante en la sección de archivados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleArchive}
+              disabled={isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isPending ? "Archivando..." : "Archivar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

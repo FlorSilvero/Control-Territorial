@@ -135,7 +135,9 @@ export function StatisticDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Registrar / Editar Estadística</DialogTitle>
+          <DialogTitle>
+            {isEditingAnnual || existingMatch ? "Editar Estadística" : "Registrar Estadística"}
+          </DialogTitle>
           <DialogDescription>
             Ingresá los datos de miembros (fotografía de estado) y bautismos acumulados durante el
             mes. El total anual se calcula automáticamente como la suma de los meses.
