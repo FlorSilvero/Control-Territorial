@@ -119,7 +119,7 @@ export function PastorsListClient({
         <div className="flex flex-wrap items-center gap-2">
           {canEdit && (
             <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2 shrink-0">
-              <Download className="size-4" />
+              <Upload className="size-4" />
               Importar Excel
             </Button>
           )}
@@ -129,7 +129,7 @@ export function PastorsListClient({
             render={<a href="/api/export/pastors" />}
             className="gap-2 shrink-0"
           >
-            <Upload className="size-4" />
+            <Download className="size-4" />
             Exportar
           </Button>
           {canEdit && (

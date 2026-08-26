@@ -60,7 +60,7 @@ export function DistrictsListClient({
         <div className="flex flex-wrap items-center gap-2">
           {canEdit && (
             <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2 shrink-0">
-              <Download className="size-4" />
+              <Upload className="size-4" />
               Importar estadísticas
             </Button>
           )}
@@ -70,7 +70,7 @@ export function DistrictsListClient({
             render={<a href="/api/export/statistics" />}
             className="gap-2 shrink-0"
           >
-            <Upload className="size-4" />
+            <Download className="size-4" />
             Exportar estadísticas
           </Button>
           {canEdit && (

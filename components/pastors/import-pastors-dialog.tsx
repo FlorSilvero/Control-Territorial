@@ -13,6 +13,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ExcelColumnsPreview } from "@/components/shared/excel-columns-preview"
+import { ImportErrorList } from "@/components/shared/import-error-list"
+import { PASTOR_COLUMNS, PASTOR_EXAMPLE_ROWS } from "@/lib/excel-schemas"
 import { importPastors, type ImportPastorsSummary } from "@/lib/actions/import-pastors"
 import { toast } from "sonner"
 
@@ -61,51 +64,29 @@ export function ImportPastorsDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Importar pastores desde Excel</DialogTitle>
           <DialogDescription>
-            El archivo .xlsx debe tener estas columnas en la primera fila. Nombre y Apellido son
-            obligatorios; el resto es opcional.
+            Una fila por pastor. El archivo .xlsx debe tener estas columnas en la primera fila.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-md border text-xs overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-muted">
-              <tr>
-                {["Nombre", "Apellido", "Email", "Teléfono", "Distrito", "Fecha inicio", "Notas"].map(
-                  (h) => (
-                    <th key={h} className="px-2 py-1.5 font-medium whitespace-nowrap">
-                      {h}
-                    </th>
-                  ),
-                )}
-              </tr>
-            </thead>
-            <tbody className="text-muted-foreground">
-              <tr className="border-t">
-                <td className="px-2 py-1.5">Juan</td>
-                <td className="px-2 py-1.5">Pérez</td>
-                <td className="px-2 py-1.5">juan@iglesia.app</td>
-                <td className="px-2 py-1.5">+54 9 11 1234-5678</td>
-                <td className="px-2 py-1.5">Norte</td>
-                <td className="px-2 py-1.5">2026-01-15</td>
-                <td className="px-2 py-1.5"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p className="text-[11px] text-muted-foreground -mt-2">
-          Un pastor existente (mismo Nombre + Apellido) se actualiza en vez de duplicarse. Si
-          completás Distrito, se asigna al pastor desde la Fecha inicio indicada (o desde hoy si se
-          deja vacía).
+        <ExcelColumnsPreview
+          columns={PASTOR_COLUMNS}
+          exampleRows={PASTOR_EXAMPLE_ROWS}
+          templateHref="/api/export/pastors?template=1"
+        />
+        <p className="text-[11px] text-muted-foreground">
+          Un pastor existente (mismo Nombre + Apellido) se actualiza en vez de duplicarse, y las
+          celdas vacías no borran lo que ya está cargado. Si completás Distrito, se asigna al pastor
+          desde la Fecha inicio indicada (o desde hoy si se deja vacía).
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="pastors-file">Archivo .xlsx</Label>
-            <Input id="pastors-file" ref={fileInputRef} type="file" accept=".xlsx,.xls" required />
+            <Input id="pastors-file" ref={fileInputRef} type="file" accept=".xlsx" required />
           </div>
 
           {summary && (
@@ -113,17 +94,9 @@ export function ImportPastorsDialog({
               <p className="font-medium">
                 {summary.created} creados · {summary.updated} actualizados · {summary.assigned}{" "}
                 asignados a distrito
-                {summary.errors.length > 0 && ` · ${summary.errors.length} con error`}
+                {summary.errorCount > 0 && ` · ${summary.errorCount} con error`}
               </p>
-              {summary.errors.length > 0 && (
-                <ul className="max-h-40 space-y-1 overflow-y-auto text-destructive">
-                  {summary.errors.map((err, i) => (
-                    <li key={i}>
-                      Fila {err.row}: {err.message}
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <ImportErrorList errors={summary.errors} errorCount={summary.errorCount} />
             </div>
           )}
 

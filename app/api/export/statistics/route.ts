@@ -2,14 +2,24 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireSession } from "@/lib/session"
 import { writeWorkbook } from "@/lib/excel"
+import { STATISTIC_COLUMNS, STATISTIC_EXAMPLE_ROWS, columnLabels } from "@/lib/excel-schemas"
 
-// Same column shape as the statistics import template
-// (import-district-stats-dialog.tsx / importDistrictStatistics) so the
-// download can be edited and re-imported directly. `?districtId=` limits the
-// export to a single district.
+// Same column shape as the statistics import (STATISTIC_COLUMNS /
+// importDistrictStatistics) so the download can be edited and re-imported
+// directly. `?districtId=` limits the export to a single district;
+// `?template=1` returns the headers plus example rows instead of the data.
 export async function GET(request: Request) {
   const ctx = await requireSession()
-  const districtId = new URL(request.url).searchParams.get("districtId") ?? undefined
+  const params = new URL(request.url).searchParams
+  const districtId = params.get("districtId") ?? undefined
+  const headers = columnLabels(STATISTIC_COLUMNS)
+
+  if (params.get("template") === "1") {
+    return xlsxResponse(
+      await writeWorkbook(headers, STATISTIC_EXAMPLE_ROWS),
+      "plantilla-estadisticas.xlsx",
+    )
+  }
 
   const records = await prisma.statisticRecord.findMany({
     where: {
@@ -26,7 +36,6 @@ export async function GET(request: Request) {
     ],
   })
 
-  const headers = ["Distrito", "Iglesia", "Año", "Mes", "Miembros", "Bautismos"]
   const rows = records.map((r) => [
     r.church.district.name,
     r.church.name,
@@ -36,11 +45,15 @@ export async function GET(request: Request) {
     r.baptismCount,
   ])
 
-  const buffer = await writeWorkbook(headers, rows)
+  return xlsxResponse(await writeWorkbook(headers, rows), "estadisticas.xlsx")
+}
+
+function xlsxResponse(buffer: Buffer, filename: string): NextResponse {
   return new NextResponse(buffer, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": 'attachment; filename="estadisticas.xlsx"',
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "no-store",
     },
   })
 }

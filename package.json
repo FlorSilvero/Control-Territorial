@@ -63,10 +63,15 @@
       "electron/**/*",
       "!electron/main-dev.js"
     ],
+    "afterPack": "scripts/afterpack-sign.js",
     "extraResources": [
       {
         "from": "electron-resources/app",
         "to": "app"
+      },
+      {
+        "from": "electron-resources/app/node_modules",
+        "to": "app/node_modules"
       },
       {
         "from": "electron-resources/db-template",

@@ -13,6 +13,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ExcelColumnsPreview } from "@/components/shared/excel-columns-preview"
+import { ImportErrorList } from "@/components/shared/import-error-list"
+import { STATISTIC_COLUMNS, STATISTIC_EXAMPLE_ROWS } from "@/lib/excel-schemas"
 import {
   importDistrictStatistics,
   type ImportStatisticsSummary,
@@ -64,72 +67,39 @@ export function ImportDistrictStatsDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Importar estadísticas desde Excel</DialogTitle>
           <DialogDescription>
-            Una fila por iglesia y mes. Distrito, Iglesia, Año y Mes son obligatorios y deben
-            coincidir con registros ya existentes.
+            Una fila por iglesia y mes. Distrito e Iglesia deben coincidir con registros ya
+            existentes en la app.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-md border text-xs overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-muted">
-              <tr>
-                {["Distrito", "Iglesia", "Año", "Mes", "Miembros", "Bautismos"].map((h) => (
-                  <th key={h} className="px-2 py-1.5 font-medium whitespace-nowrap">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="text-muted-foreground">
-              <tr className="border-t">
-                <td className="px-2 py-1.5">Norte</td>
-                <td className="px-2 py-1.5">Central</td>
-                <td className="px-2 py-1.5">2026</td>
-                <td className="px-2 py-1.5">7</td>
-                <td className="px-2 py-1.5">120</td>
-                <td className="px-2 py-1.5">3</td>
-              </tr>
-              <tr className="border-t">
-                <td className="px-2 py-1.5">Norte</td>
-                <td className="px-2 py-1.5">Central</td>
-                <td className="px-2 py-1.5">2026</td>
-                <td className="px-2 py-1.5">8</td>
-                <td className="px-2 py-1.5"></td>
-                <td className="px-2 py-1.5">1</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p className="text-[11px] text-muted-foreground -mt-2">
+        <ExcelColumnsPreview
+          columns={STATISTIC_COLUMNS}
+          exampleRows={STATISTIC_EXAMPLE_ROWS}
+          templateHref="/api/export/statistics?template=1"
+        />
+        <p className="text-[11px] text-muted-foreground">
           Si dejás Miembros vacío (como el mes 8 del ejemplo), queda igual que el último valor
-          cargado para esa iglesia. Bautismos vacío se guarda como 0.
+          conocido de esa iglesia hasta ese mes. Bautismos vacío se guarda como 0. Un mes que ya
+          existe se reemplaza con lo que traiga el archivo.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="stats-file">Archivo .xlsx</Label>
-            <Input id="stats-file" ref={fileInputRef} type="file" accept=".xlsx,.xls" required />
+            <Input id="stats-file" ref={fileInputRef} type="file" accept=".xlsx" required />
           </div>
 
           {summary && (
             <div className="space-y-2 rounded-md bg-muted p-3 text-xs">
               <p className="font-medium">
                 {summary.saved} registros guardados
-                {summary.errors.length > 0 && ` · ${summary.errors.length} con error`}
+                {summary.errorCount > 0 && ` · ${summary.errorCount} con error`}
               </p>
-              {summary.errors.length > 0 && (
-                <ul className="max-h-40 space-y-1 overflow-y-auto text-destructive">
-                  {summary.errors.map((err, i) => (
-                    <li key={i}>
-                      Fila {err.row}: {err.message}
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <ImportErrorList errors={summary.errors} errorCount={summary.errorCount} />
             </div>
           )}
 

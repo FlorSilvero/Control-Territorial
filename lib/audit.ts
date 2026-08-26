@@ -29,3 +29,27 @@ export async function audit(
     },
   })
 }
+
+export type AuditEntry = {
+  action: string
+  entityType: string
+  entityId: string
+  metadata?: Prisma.InputJsonValue
+}
+
+/**
+ * Bulk variant of `audit` for importers, which would otherwise pay one round
+ * trip per imported row. `client` accepts a transaction client so the log is
+ * written in the same transaction as the rows it describes.
+ */
+export async function auditMany(
+  client: Pick<Prisma.TransactionClient, "auditLog">,
+  orgId: string,
+  actorId: string,
+  entries: AuditEntry[],
+): Promise<void> {
+  if (entries.length === 0) return
+  await client.auditLog.createMany({
+    data: entries.map((e) => ({ ...e, organizationId: orgId, actorId })),
+  })
+}
