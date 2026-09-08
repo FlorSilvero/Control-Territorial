@@ -1542,6 +1542,7 @@ export type OrganizationCreateManyArgs<ExtArgs extends runtime.Types.Extensions.
    * The data used to create many Organizations.
    */
   data: Prisma.OrganizationCreateManyInput | Prisma.OrganizationCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1560,6 +1561,7 @@ export type OrganizationCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Ex
    * The data used to create many Organizations.
    */
   data: Prisma.OrganizationCreateManyInput | Prisma.OrganizationCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**

@@ -30,6 +30,7 @@ export async function createChurch(input: unknown): Promise<ActionResult> {
     data: {
       organizationId: ctx.organizationId,
       name: parsed.data.name,
+      type: parsed.data.type,
       districtId: parsed.data.districtId,
       address: parsed.data.address || null,
       notes: parsed.data.notes || null,
@@ -67,6 +68,7 @@ export async function updateChurch(id: string, input: unknown): Promise<ActionRe
     where: { id },
     data: {
       name: parsed.data.name,
+      type: parsed.data.type,
       districtId: parsed.data.districtId,
       address: parsed.data.address || null,
       notes: parsed.data.notes || null,

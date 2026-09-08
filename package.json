@@ -2,23 +2,21 @@
   "name": "control-territorial",
   "version": "0.1.0",
   "private": true,
-  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint .",
     "seed": "tsx prisma/seed.ts",
-    "backup": "tsx prisma/backup.ts",
+    "import:dump": "tsx prisma/import-dump.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "electron:dev": "electron electron/main-dev.js",
-    "electron:build": "node scripts/build-electron.js"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
     "@base-ui/react": "^1.5.0",
-    "@prisma/adapter-better-sqlite3": "^7.9.1",
+    "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
@@ -29,6 +27,7 @@
     "next": "16.3.0",
     "next-auth": "5.0.0-beta.32",
     "next-themes": "^0.4.6",
+    "pg": "^8.23.0",
     "react": "^19",
     "react-dom": "^19",
     "recharts": "^3.10.1",
@@ -42,11 +41,10 @@
     "@tailwindcss/postcss": "^4.3.3",
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "^24",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.4.2",
-    "electron": "^43.4.1",
-    "electron-builder": "^26.15.3",
     "eslint": "^9.39.0",
     "eslint-config-next": "16.3.0",
     "postcss": "^8.5",
@@ -56,48 +54,8 @@
     "typescript": "5.7.3",
     "vitest": "^4.1.11"
   },
-  "build": {
-    "appId": "com.controlterritorial.app",
-    "productName": "Control Territorial",
-    "files": [
-      "electron/**/*",
-      "!electron/main-dev.js"
-    ],
-    "afterPack": "scripts/afterpack-sign.js",
-    "extraResources": [
-      {
-        "from": "electron-resources/app",
-        "to": "app"
-      },
-      {
-        "from": "electron-resources/app/node_modules",
-        "to": "app/node_modules"
-      },
-      {
-        "from": "electron-resources/db-template",
-        "to": "db-template"
-      }
-    ],
-    "mac": {
-      "category": "public.app-category.business",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "arm64"
-          ]
-        }
-      ],
-      "icon": "build/icon.icns"
-    },
-    "directories": {
-      "output": "dist"
-    }
-  },
   "allowScripts": {
-    "better-sqlite3@12.11.1": true,
     "@prisma/engines@7.9.1": true,
-    "electron-winstaller@5.4.0": true,
     "esbuild@0.28.2": true,
     "fsevents@2.3.3": true,
     "prisma@7.9.1": true

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DistrictDialog } from "@/components/districts/district-dialog"
 import { ImportDistrictStatsDialog } from "@/components/districts/import-district-stats-dialog"
+import { ImportRosterDialog } from "@/components/districts/import-roster-dialog"
 import { normalizeText } from "@/lib/utils"
 import { MapPinned, Church, Users, Waves, UserCheck, Plus, Upload, Download, Search } from "lucide-react"
 
@@ -36,6 +37,7 @@ export function DistrictsListClient({
 }) {
   const [createOpen, setCreateOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
+  const [importRosterOpen, setImportRosterOpen] = useState(false)
   const [search, setSearch] = useState("")
 
   const filteredDistricts = districts.filter((d) => {
@@ -58,6 +60,25 @@ export function DistrictsListClient({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {canEdit && (
+            <Button
+              variant="outline"
+              onClick={() => setImportRosterOpen(true)}
+              className="gap-2 shrink-0"
+            >
+              <Upload className="size-4" />
+              Importar planilla
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<a href="/api/export/roster" />}
+            className="gap-2 shrink-0"
+          >
+            <Download className="size-4" />
+            Exportar planilla
+          </Button>
           {canEdit && (
             <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2 shrink-0">
               <Upload className="size-4" />
@@ -189,6 +210,7 @@ export function DistrictsListClient({
       {/* Dialogs */}
       <DistrictDialog open={createOpen} onOpenChange={setCreateOpen} />
       <ImportDistrictStatsDialog open={importOpen} onOpenChange={setImportOpen} />
+      <ImportRosterDialog open={importRosterOpen} onOpenChange={setImportRosterOpen} />
     </div>
   )
 }

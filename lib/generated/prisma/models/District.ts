@@ -527,6 +527,7 @@ export type DistrictCreateOrConnectWithoutOrganizationInput = {
 
 export type DistrictCreateManyOrganizationInputEnvelope = {
   data: Prisma.DistrictCreateManyOrganizationInput | Prisma.DistrictCreateManyOrganizationInput[]
+  skipDuplicates?: boolean
 }
 
 export type DistrictUpsertWithWhereUniqueWithoutOrganizationInput = {
@@ -1538,6 +1539,7 @@ export type DistrictCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * The data used to create many Districts.
    */
   data: Prisma.DistrictCreateManyInput | Prisma.DistrictCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1556,6 +1558,7 @@ export type DistrictCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extens
    * The data used to create many Districts.
    */
   data: Prisma.DistrictCreateManyInput | Prisma.DistrictCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

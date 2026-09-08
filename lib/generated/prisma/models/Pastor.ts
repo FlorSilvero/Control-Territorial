@@ -624,6 +624,7 @@ export type PastorCreateOrConnectWithoutOrganizationInput = {
 
 export type PastorCreateManyOrganizationInputEnvelope = {
   data: Prisma.PastorCreateManyOrganizationInput | Prisma.PastorCreateManyOrganizationInput[]
+  skipDuplicates?: boolean
 }
 
 export type PastorUpsertWithWhereUniqueWithoutOrganizationInput = {
@@ -1623,6 +1624,7 @@ export type PastorCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * The data used to create many Pastors.
    */
   data: Prisma.PastorCreateManyInput | Prisma.PastorCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1641,6 +1643,7 @@ export type PastorCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensio
    * The data used to create many Pastors.
    */
   data: Prisma.PastorCreateManyInput | Prisma.PastorCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

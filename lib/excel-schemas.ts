@@ -60,3 +60,32 @@ export const STATISTIC_EXAMPLE_ROWS: string[][] = [
   ["Norte", "Central", "2026", "7", "120", "3"],
   ["Norte", "Central", "2026", "8", "", "1"],
 ]
+
+/**
+ * The "Distritos <año>" planilla: one row per congregation, carrying the whole
+ * territorial structure (responsable → distrito → congregación) plus its
+ * membership. Unlike STATISTIC_COLUMNS, this layout has no date columns — the
+ * whole sheet is a single snapshot, and the month it belongs to is chosen when
+ * importing.
+ */
+export const ROSTER_COLUMNS = [
+  {
+    label: "Responsable del distrito",
+    aliases: ["Responsable", "Pastor", "Pastor responsable", "Pastor del distrito"],
+    required: true,
+  },
+  { label: "Distrito", aliases: ["Distrito pastoral"], required: true },
+  {
+    label: "Nombre de la Iglesia",
+    aliases: ["Iglesia", "Congregación", "Nombre de la congregación", "Templo"],
+    required: true,
+  },
+  { label: "Tipo de Congregacion", aliases: ["Tipo", "Tipo de congregación"] },
+  { label: "Miembros", aliases: ["Membresía", "Feligreses"] },
+] as const satisfies readonly ColumnSpec[]
+
+export const ROSTER_EXAMPLE_ROWS: string[][] = [
+  ["Cerdá Pissano Nestor Gabriel", "Avellaneda", "Avellaneda", "Iglesia", "316"],
+  ["Cerdá Pissano Nestor Gabriel", "Avellaneda", "Quilmes", "Iglesia", "92"],
+  ["Caviglione Darío Marcelo", "Boedo", "Bajo Flores Sur", "Grupo", "56"],
+]

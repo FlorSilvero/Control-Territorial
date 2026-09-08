@@ -1,5 +1,4 @@
-import "dotenv/config"
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"
+import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "@/lib/generated/prisma/client"
 
 const globalForPrisma = globalThis as unknown as {
@@ -7,7 +6,13 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 export function createPrismaClient() {
-  const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL! })
+  // DATABASE_URL points at Supabase's transaction pooler (port 6543): every
+  // serverless invocation gets its own short-lived process, so a per-instance
+  // pool of one connection is what keeps Postgres from running out of slots.
+  const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL!,
+    max: 1,
+  })
   return new PrismaClient({ adapter })
 }
 

@@ -37,6 +37,7 @@ import {
 import { ChurchDialog } from "@/components/churches/church-dialog"
 import { StatisticDialog } from "@/components/churches/statistic-dialog"
 import { archiveChurch } from "@/lib/actions/churches"
+import { congregationTypeLabel, type CongregationType } from "@/lib/format"
 import { deleteStatistic } from "@/lib/actions/statistics"
 import { MONTH_NAMES } from "@/lib/date-utils"
 import {
@@ -55,6 +56,7 @@ import type { YearlyRow } from "@/lib/queries"
 type ChurchDetailData = {
   id: string
   name: string
+  type: CongregationType
   address?: string | null
   notes?: string | null
   archivedAt?: Date | null
@@ -152,6 +154,9 @@ export function ChurchDetailClient({
         <div>
           <div className="flex items-center gap-3">
             <h1 className="font-serif text-3xl font-bold tracking-tight">{church.name}</h1>
+            <Badge variant={church.type === "GRUPO" ? "secondary" : "default"}>
+              {congregationTypeLabel(church.type)}
+            </Badge>
             {church.archivedAt && <Badge variant="destructive">Archivada</Badge>}
           </div>
           <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">

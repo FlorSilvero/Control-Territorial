@@ -1,5 +1,11 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'EDITOR', 'VIEWER');
+
+-- CreateEnum
+CREATE TYPE "CongregationType" AS ENUM ('IGLESIA', 'GRUPO');
 
 -- CreateEnum
 CREATE TYPE "StatPeriod" AS ENUM ('ANNUAL', 'MONTHLY');
@@ -85,6 +91,7 @@ CREATE TABLE "District" (
 CREATE TABLE "Church" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "type" "CongregationType" NOT NULL DEFAULT 'IGLESIA',
     "address" TEXT,
     "notes" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -105,6 +112,8 @@ CREATE TABLE "Pastor" (
     "lastName" TEXT NOT NULL,
     "email" TEXT,
     "phone" TEXT,
+    "spouseName" TEXT,
+    "childrenNames" TEXT,
     "notes" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,

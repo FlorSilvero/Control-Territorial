@@ -2,14 +2,14 @@ import { config } from "dotenv"
 config({ path: ".env.local" })
 import { createPrismaClient } from "../lib/prisma"
 import bcrypt from "bcryptjs"
+import {
+  DISTRITOS_2026,
+  SNAPSHOT_YEAR,
+  SNAPSHOT_MONTH,
+  ASSIGNMENT_START,
+} from "./data/distritos-2026"
 
 const prisma = createPrismaClient()
-
-const CURRENT_YEAR = new Date().getFullYear()
-
-function rand(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
 
 async function main() {
   console.log("[seed] starting...")
@@ -35,136 +35,70 @@ async function main() {
     },
   })
 
-  // Wipe domain data for a clean reseed (keeps org + user)
+  // Wipe domain data for a clean reseed (keeps org + user). Children first so
+  // no delete trips a foreign key.
+  await prisma.auditLog.deleteMany({ where: { organizationId: org.id } })
   await prisma.statisticRecord.deleteMany({ where: { organizationId: org.id } })
   await prisma.pastorAssignment.deleteMany({ where: { organizationId: org.id } })
   await prisma.church.deleteMany({ where: { organizationId: org.id } })
   await prisma.district.deleteMany({ where: { organizationId: org.id } })
   await prisma.pastor.deleteMany({ where: { organizationId: org.id } })
 
-  // ---- Districts ----
-  const districtNames = ["Distrito Centro", "Distrito Norte", "Distrito Sur"]
-  const districts = []
-  for (const name of districtNames) {
-    districts.push(
-      await prisma.district.create({
-        data: { name, organizationId: org.id },
-      }),
-    )
-  }
+  let churchCount = 0
 
-  // ---- Pastors ----
-  const pastorData = [
-    ["Juan", "Pérez"],
-    ["Carlos", "Gómez"],
-    ["Marta", "Sosa"],
-  ]
-  const pastors = []
-  for (const [firstName, lastName] of pastorData) {
-    pastors.push(
-      await prisma.pastor.create({
+  for (const entry of DISTRITOS_2026) {
+    const district = await prisma.district.create({
+      data: { name: entry.name, organizationId: org.id },
+    })
+
+    const pastor = await prisma.pastor.create({
+      data: {
+        firstName: entry.pastor.firstName,
+        lastName: entry.pastor.lastName,
+        organizationId: org.id,
+      },
+    })
+
+    await prisma.pastorAssignment.create({
+      data: {
+        organizationId: org.id,
+        pastorId: pastor.id,
+        districtId: district.id,
+        startDate: ASSIGNMENT_START,
+        endDate: null,
+      },
+    })
+
+    for (const congregation of entry.congregations) {
+      const church = await prisma.church.create({
         data: {
-          firstName,
-          lastName,
-          email: `${firstName.toLowerCase()}@iglesia.app`,
+          name: congregation.name,
+          type: congregation.type,
           organizationId: org.id,
-        },
-      }),
-    )
-  }
-
-  // ---- Pastor assignments ----
-  // Pastor Juan: Centro
-  await prisma.pastorAssignment.create({
-    data: {
-      organizationId: org.id,
-      pastorId: pastors[0].id,
-      districtId: districts[0].id,
-      startDate: new Date("2023-07-01"),
-      endDate: null,
-    },
-  })
-  // Pastor Carlos: Norte
-  await prisma.pastorAssignment.create({
-    data: {
-      organizationId: org.id,
-      pastorId: pastors[1].id,
-      districtId: districts[1].id,
-      startDate: new Date("2023-07-01"),
-      endDate: null,
-    },
-  })
-  // Pastor Marta: Sur
-  await prisma.pastorAssignment.create({
-    data: {
-      organizationId: org.id,
-      pastorId: pastors[2].id,
-      districtId: districts[2].id,
-      startDate: new Date("2023-07-01"),
-      endDate: null,
-    },
-  })
-
-  // ---- Churches ----
-  const churchesByDistrict: Record<string, string[]> = {
-    [districts[0].id]: ["Iglesia Central", "Iglesia Emmanuel", "Iglesia Betel"],
-    [districts[1].id]: ["Iglesia Norte", "Iglesia Esperanza", "Iglesia Nueva Vida"],
-    [districts[2].id]: ["Iglesia Sur", "Iglesia Getsemaní", "Iglesia Filadelfia"],
-  }
-
-  const churches = []
-  for (const [districtId, names] of Object.entries(churchesByDistrict)) {
-    for (const name of names) {
-      churches.push(
-        await prisma.church.create({
-          data: { name, organizationId: org.id, districtId },
-        }),
-      )
-    }
-  }
-
-  // ---- Statistics ----
-  // Annual records for past years + monthly records for the current year.
-  for (const church of churches) {
-    let members = rand(60, 180)
-
-    // Past annual records
-    for (let year = CURRENT_YEAR - 4; year < CURRENT_YEAR; year++) {
-      const baptisms = rand(5, 40)
-      members += rand(-5, baptisms)
-      await prisma.statisticRecord.create({
-        data: {
-          organizationId: org.id,
-          churchId: church.id,
-          period: "ANNUAL",
-          year,
-          month: null,
-          memberCount: members,
-          baptismCount: baptisms,
+          districtId: district.id,
         },
       })
-    }
+      churchCount++
 
-    // Current year monthly records (up to current month)
-    const currentMonth = new Date().getMonth() + 1
-    for (let month = 1; month <= currentMonth; month++) {
-      const baptisms = rand(0, 6)
-      members += rand(0, baptisms)
+      // The source is a single membership snapshot, so it lands as one monthly
+      // record. Baptisms aren't in the source and start at zero.
       await prisma.statisticRecord.create({
         data: {
           organizationId: org.id,
           churchId: church.id,
           period: "MONTHLY",
-          year: CURRENT_YEAR,
-          month,
-          memberCount: members,
-          baptismCount: baptisms,
+          year: SNAPSHOT_YEAR,
+          month: SNAPSHOT_MONTH,
+          memberCount: congregation.members,
+          baptismCount: 0,
         },
       })
     }
   }
 
-  console.log("[seed] done.")
+  console.log(
+    `[seed] done — ${DISTRITOS_2026.length} distritos, ${DISTRITOS_2026.length} pastores, ${churchCount} congregaciones.`,
+  )
   console.log("[seed] login -> admin@iglesia.app / admin1234")
 }
 

@@ -15,12 +15,14 @@ import {
 } from "@/components/ui/select"
 import { ChurchDialog } from "@/components/churches/church-dialog"
 import { normalizeText, cn } from "@/lib/utils"
+import { congregationTypeLabel, type CongregationType } from "@/lib/format"
 import type { MembersTrend } from "@/lib/stats"
 import { Church, MapPinned, Users, Waves, UserCheck, Plus, Search, TrendingUp, TrendingDown, Minus } from "lucide-react"
 
 type ChurchItem = {
   id: string
   name: string
+  type: CongregationType
   district: { id: string; name: string }
   currentPastor: { id: string; firstName: string; lastName: string } | null
   currentMembers: number
@@ -48,12 +50,14 @@ export function ChurchesListClient({
   const [createOpen, setCreateOpen] = useState(false)
   const [search, setSearch] = useState("")
   const [selectedDistrict, setSelectedDistrict] = useState<string>("all")
+  const [selectedType, setSelectedType] = useState<string>("all")
 
   const filteredChurches = churches.filter((c) => {
     const matchesSearch = normalizeText(c.name).includes(normalizeText(search))
     const matchesDistrict =
       selectedDistrict === "all" || c.district.id === selectedDistrict
-    return matchesSearch && matchesDistrict
+    const matchesType = selectedType === "all" || c.type === selectedType
+    return matchesSearch && matchesDistrict && matchesType
   })
 
   return (
@@ -106,6 +110,21 @@ export function ChurchesListClient({
             ))}
           </SelectContent>
         </Select>
+
+        <Select
+          value={selectedType}
+          onValueChange={(value) => setSelectedType(value ?? "all")}
+          items={{ all: "Todos los tipos", IGLESIA: "Iglesia", GRUPO: "Grupo" }}
+        >
+          <SelectTrigger className="w-full sm:w-44">
+            <SelectValue placeholder="Todos los tipos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los tipos</SelectItem>
+            <SelectItem value="IGLESIA">Iglesia</SelectItem>
+            <SelectItem value="GRUPO">Grupo</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Grid of Cards */}
@@ -143,10 +162,15 @@ export function ChurchesListClient({
                           {c.name}
                         </Link>
                       </CardTitle>
-                      <Badge variant="outline" className="shrink-0 flex items-center gap-1">
-                        <MapPinned className="size-3" />
-                        {c.district.name}
-                      </Badge>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <Badge variant="outline" className="flex items-center gap-1">
+                          <MapPinned className="size-3" />
+                          {c.district.name}
+                        </Badge>
+                        <Badge variant={c.type === "GRUPO" ? "secondary" : "default"}>
+                          {congregationTypeLabel(c.type)}
+                        </Badge>
+                      </div>
                     </div>
                   </CardHeader>
 

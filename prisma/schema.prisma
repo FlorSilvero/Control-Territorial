@@ -1,5 +1,6 @@
 // Pastoral districts management — data model
-// Stack: Prisma 7 (prisma-client generator + better-sqlite3 driver adapter) on local SQLite
+// Stack: Prisma 7 (prisma-client generator + node-postgres driver adapter) on
+// Supabase Postgres, deployed on Vercel.
 //
 // Design principles:
 // - Multi-tenant from day 1: organizationId on every domain entity.
@@ -14,7 +15,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 // ---------------------------------------------------------------------------
@@ -126,9 +127,17 @@ model District {
   @@index([archivedAt])
 }
 
+// "Iglesia" is an organized congregation; "Grupo" is a smaller company not yet
+// organized. Everything else about them behaves identically.
+enum CongregationType {
+  IGLESIA
+  GRUPO
+}
+
 model Church {
   id        String   @id @default(cuid())
   name      String
+  type      CongregationType @default(IGLESIA)
   address   String?
   notes     String?
   createdAt DateTime @default(now())

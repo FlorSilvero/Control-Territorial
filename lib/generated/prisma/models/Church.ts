@@ -27,6 +27,7 @@ export type AggregateChurch = {
 export type ChurchMinAggregateOutputType = {
   id: string | null
   name: string | null
+  type: $Enums.CongregationType | null
   address: string | null
   notes: string | null
   createdAt: Date | null
@@ -41,6 +42,7 @@ export type ChurchMinAggregateOutputType = {
 export type ChurchMaxAggregateOutputType = {
   id: string | null
   name: string | null
+  type: $Enums.CongregationType | null
   address: string | null
   notes: string | null
   createdAt: Date | null
@@ -55,6 +57,7 @@ export type ChurchMaxAggregateOutputType = {
 export type ChurchCountAggregateOutputType = {
   id: number
   name: number
+  type: number
   address: number
   notes: number
   createdAt: number
@@ -71,6 +74,7 @@ export type ChurchCountAggregateOutputType = {
 export type ChurchMinAggregateInputType = {
   id?: true
   name?: true
+  type?: true
   address?: true
   notes?: true
   createdAt?: true
@@ -85,6 +89,7 @@ export type ChurchMinAggregateInputType = {
 export type ChurchMaxAggregateInputType = {
   id?: true
   name?: true
+  type?: true
   address?: true
   notes?: true
   createdAt?: true
@@ -99,6 +104,7 @@ export type ChurchMaxAggregateInputType = {
 export type ChurchCountAggregateInputType = {
   id?: true
   name?: true
+  type?: true
   address?: true
   notes?: true
   createdAt?: true
@@ -186,6 +192,7 @@ export type ChurchGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 export type ChurchGroupByOutputType = {
   id: string
   name: string
+  type: $Enums.CongregationType
   address: string | null
   notes: string | null
   createdAt: Date
@@ -221,6 +228,7 @@ export type ChurchWhereInput = {
   NOT?: Prisma.ChurchWhereInput | Prisma.ChurchWhereInput[]
   id?: Prisma.StringFilter<"Church"> | string
   name?: Prisma.StringFilter<"Church"> | string
+  type?: Prisma.EnumCongregationTypeFilter<"Church"> | $Enums.CongregationType
   address?: Prisma.StringNullableFilter<"Church"> | string | null
   notes?: Prisma.StringNullableFilter<"Church"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Church"> | Date | string
@@ -238,6 +246,7 @@ export type ChurchWhereInput = {
 export type ChurchOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -258,6 +267,7 @@ export type ChurchWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.ChurchWhereInput[]
   NOT?: Prisma.ChurchWhereInput | Prisma.ChurchWhereInput[]
   name?: Prisma.StringFilter<"Church"> | string
+  type?: Prisma.EnumCongregationTypeFilter<"Church"> | $Enums.CongregationType
   address?: Prisma.StringNullableFilter<"Church"> | string | null
   notes?: Prisma.StringNullableFilter<"Church"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Church"> | Date | string
@@ -275,6 +285,7 @@ export type ChurchWhereUniqueInput = Prisma.AtLeast<{
 export type ChurchOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -295,6 +306,7 @@ export type ChurchScalarWhereWithAggregatesInput = {
   NOT?: Prisma.ChurchScalarWhereWithAggregatesInput | Prisma.ChurchScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Church"> | string
   name?: Prisma.StringWithAggregatesFilter<"Church"> | string
+  type?: Prisma.EnumCongregationTypeWithAggregatesFilter<"Church"> | $Enums.CongregationType
   address?: Prisma.StringNullableWithAggregatesFilter<"Church"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"Church"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Church"> | Date | string
@@ -309,6 +321,7 @@ export type ChurchScalarWhereWithAggregatesInput = {
 export type ChurchCreateInput = {
   id?: string
   name: string
+  type?: $Enums.CongregationType
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
@@ -324,6 +337,7 @@ export type ChurchCreateInput = {
 export type ChurchUncheckedCreateInput = {
   id?: string
   name: string
+  type?: $Enums.CongregationType
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
@@ -339,6 +353,7 @@ export type ChurchUncheckedCreateInput = {
 export type ChurchUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCongregationTypeFieldUpdateOperationsInput | $Enums.CongregationType
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -354,6 +369,7 @@ export type ChurchUpdateInput = {
 export type ChurchUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCongregationTypeFieldUpdateOperationsInput | $Enums.CongregationType
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -369,6 +385,7 @@ export type ChurchUncheckedUpdateInput = {
 export type ChurchCreateManyInput = {
   id?: string
   name: string
+  type?: $Enums.CongregationType
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
@@ -383,6 +400,7 @@ export type ChurchCreateManyInput = {
 export type ChurchUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCongregationTypeFieldUpdateOperationsInput | $Enums.CongregationType
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -395,6 +413,7 @@ export type ChurchUpdateManyMutationInput = {
 export type ChurchUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCongregationTypeFieldUpdateOperationsInput | $Enums.CongregationType
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -419,6 +438,7 @@ export type ChurchOrderByRelationAggregateInput = {
 export type ChurchCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   address?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -433,6 +453,7 @@ export type ChurchCountOrderByAggregateInput = {
 export type ChurchMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   address?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -447,6 +468,7 @@ export type ChurchMaxOrderByAggregateInput = {
 export type ChurchMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   address?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -547,6 +569,10 @@ export type ChurchUncheckedUpdateManyWithoutDistrictNestedInput = {
   deleteMany?: Prisma.ChurchScalarWhereInput | Prisma.ChurchScalarWhereInput[]
 }
 
+export type EnumCongregationTypeFieldUpdateOperationsInput = {
+  set?: $Enums.CongregationType
+}
+
 export type ChurchCreateNestedOneWithoutStatisticsInput = {
   create?: Prisma.XOR<Prisma.ChurchCreateWithoutStatisticsInput, Prisma.ChurchUncheckedCreateWithoutStatisticsInput>
   connectOrCreate?: Prisma.ChurchCreateOrConnectWithoutStatisticsInput
@@ -564,6 +590,7 @@ export type ChurchUpdateOneRequiredWithoutStatisticsNestedInput = {
 export type ChurchCreateWithoutOrganizationInput = {
   id?: string
   name: string
+  type?: $Enums.CongregationType
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
@@ -578,6 +605,7 @@ export type ChurchCreateWithoutOrganizationInput = {
 export type ChurchUncheckedCreateWithoutOrganizationInput = {
   id?: string
   name: string
+  type?: $Enums.CongregationType
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
@@ -596,6 +624,7 @@ export type ChurchCreateOrConnectWithoutOrganizationInput = {
 
 export type ChurchCreateManyOrganizationInputEnvelope = {
   data: Prisma.ChurchCreateManyOrganizationInput | Prisma.ChurchCreateManyOrganizationInput[]
+  skipDuplicates?: boolean
 }
 
 export type ChurchUpsertWithWhereUniqueWithoutOrganizationInput = {
@@ -620,6 +649,7 @@ export type ChurchScalarWhereInput = {
   NOT?: Prisma.ChurchScalarWhereInput | Prisma.ChurchScalarWhereInput[]
   id?: Prisma.StringFilter<"Church"> | string
   name?: Prisma.StringFilter<"Church"> | string
+  type?: Prisma.EnumCongregationTypeFilter<"Church"> | $Enums.CongregationType
   address?: Prisma.StringNullableFilter<"Church"> | string | null
   notes?: Prisma.StringNullableFilter<"Church"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Church"> | Date | string
@@ -634,6 +664,7 @@ export type ChurchScalarWhereInput = {
 export type ChurchCreateWithoutDistrictInput = {
   id?: string
   name: string
+  type?: $Enums.CongregationType
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
@@ -648,6 +679,7 @@ export type ChurchCreateWithoutDistrictInput = {
 export type ChurchUncheckedCreateWithoutDistrictInput = {
   id?: string
   name: string
+  type?: $Enums.CongregationType
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
@@ -666,6 +698,7 @@ export type ChurchCreateOrConnectWithoutDistrictInput = {
 
 export type ChurchCreateManyDistrictInputEnvelope = {
   data: Prisma.ChurchCreateManyDistrictInput | Prisma.ChurchCreateManyDistrictInput[]
+  skipDuplicates?: boolean
 }
 
 export type ChurchUpsertWithWhereUniqueWithoutDistrictInput = {
@@ -687,6 +720,7 @@ export type ChurchUpdateManyWithWhereWithoutDistrictInput = {
 export type ChurchCreateWithoutStatisticsInput = {
   id?: string
   name: string
+  type?: $Enums.CongregationType
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
@@ -701,6 +735,7 @@ export type ChurchCreateWithoutStatisticsInput = {
 export type ChurchUncheckedCreateWithoutStatisticsInput = {
   id?: string
   name: string
+  type?: $Enums.CongregationType
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
@@ -731,6 +766,7 @@ export type ChurchUpdateToOneWithWhereWithoutStatisticsInput = {
 export type ChurchUpdateWithoutStatisticsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCongregationTypeFieldUpdateOperationsInput | $Enums.CongregationType
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -745,6 +781,7 @@ export type ChurchUpdateWithoutStatisticsInput = {
 export type ChurchUncheckedUpdateWithoutStatisticsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCongregationTypeFieldUpdateOperationsInput | $Enums.CongregationType
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -759,6 +796,7 @@ export type ChurchUncheckedUpdateWithoutStatisticsInput = {
 export type ChurchCreateManyOrganizationInput = {
   id?: string
   name: string
+  type?: $Enums.CongregationType
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
@@ -772,6 +810,7 @@ export type ChurchCreateManyOrganizationInput = {
 export type ChurchUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCongregationTypeFieldUpdateOperationsInput | $Enums.CongregationType
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -786,6 +825,7 @@ export type ChurchUpdateWithoutOrganizationInput = {
 export type ChurchUncheckedUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCongregationTypeFieldUpdateOperationsInput | $Enums.CongregationType
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -800,6 +840,7 @@ export type ChurchUncheckedUpdateWithoutOrganizationInput = {
 export type ChurchUncheckedUpdateManyWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCongregationTypeFieldUpdateOperationsInput | $Enums.CongregationType
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -813,6 +854,7 @@ export type ChurchUncheckedUpdateManyWithoutOrganizationInput = {
 export type ChurchCreateManyDistrictInput = {
   id?: string
   name: string
+  type?: $Enums.CongregationType
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
@@ -826,6 +868,7 @@ export type ChurchCreateManyDistrictInput = {
 export type ChurchUpdateWithoutDistrictInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCongregationTypeFieldUpdateOperationsInput | $Enums.CongregationType
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -840,6 +883,7 @@ export type ChurchUpdateWithoutDistrictInput = {
 export type ChurchUncheckedUpdateWithoutDistrictInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCongregationTypeFieldUpdateOperationsInput | $Enums.CongregationType
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -854,6 +898,7 @@ export type ChurchUncheckedUpdateWithoutDistrictInput = {
 export type ChurchUncheckedUpdateManyWithoutDistrictInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumCongregationTypeFieldUpdateOperationsInput | $Enums.CongregationType
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -898,6 +943,7 @@ export type ChurchCountOutputTypeCountStatisticsArgs<ExtArgs extends runtime.Typ
 export type ChurchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  type?: boolean
   address?: boolean
   notes?: boolean
   createdAt?: boolean
@@ -916,6 +962,7 @@ export type ChurchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type ChurchSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  type?: boolean
   address?: boolean
   notes?: boolean
   createdAt?: boolean
@@ -932,6 +979,7 @@ export type ChurchSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type ChurchSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  type?: boolean
   address?: boolean
   notes?: boolean
   createdAt?: boolean
@@ -948,6 +996,7 @@ export type ChurchSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type ChurchSelectScalar = {
   id?: boolean
   name?: boolean
+  type?: boolean
   address?: boolean
   notes?: boolean
   createdAt?: boolean
@@ -959,7 +1008,7 @@ export type ChurchSelectScalar = {
   updatedById?: boolean
 }
 
-export type ChurchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "address" | "notes" | "createdAt" | "updatedAt" | "archivedAt" | "organizationId" | "districtId" | "createdById" | "updatedById", ExtArgs["result"]["church"]>
+export type ChurchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "type" | "address" | "notes" | "createdAt" | "updatedAt" | "archivedAt" | "organizationId" | "districtId" | "createdById" | "updatedById", ExtArgs["result"]["church"]>
 export type ChurchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   district?: boolean | Prisma.DistrictDefaultArgs<ExtArgs>
@@ -985,6 +1034,7 @@ export type $ChurchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
+    type: $Enums.CongregationType
     address: string | null
     notes: string | null
     createdAt: Date
@@ -1422,6 +1472,7 @@ export interface Prisma__ChurchClient<T, Null = never, ExtArgs extends runtime.T
 export interface ChurchFieldRefs {
   readonly id: Prisma.FieldRef<"Church", 'String'>
   readonly name: Prisma.FieldRef<"Church", 'String'>
+  readonly type: Prisma.FieldRef<"Church", 'CongregationType'>
   readonly address: Prisma.FieldRef<"Church", 'String'>
   readonly notes: Prisma.FieldRef<"Church", 'String'>
   readonly createdAt: Prisma.FieldRef<"Church", 'DateTime'>
@@ -1665,6 +1716,7 @@ export type ChurchCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * The data used to create many Churches.
    */
   data: Prisma.ChurchCreateManyInput | Prisma.ChurchCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1683,6 +1735,7 @@ export type ChurchCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensio
    * The data used to create many Churches.
    */
   data: Prisma.ChurchCreateManyInput | Prisma.ChurchCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

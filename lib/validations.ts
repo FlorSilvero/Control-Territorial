@@ -12,8 +12,12 @@ export const districtSchema = z.object({
 })
 export type DistrictInput = z.infer<typeof districtSchema>
 
+export const congregationTypeSchema = z.enum(["IGLESIA", "GRUPO"], "Tipo de congregación inválido")
+export type CongregationTypeInput = z.infer<typeof congregationTypeSchema>
+
 export const churchSchema = z.object({
   name: z.string().trim().min(2, "El nombre debe tener al menos 2 caracteres").max(120),
+  type: congregationTypeSchema.default("IGLESIA"),
   districtId: idSchema,
   address: z.string().trim().max(200).optional().or(z.literal("")),
   notes: z.string().trim().max(1000).optional().or(z.literal("")),

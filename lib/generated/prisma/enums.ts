@@ -18,6 +18,14 @@ export const Role = {
 export type Role = (typeof Role)[keyof typeof Role]
 
 
+export const CongregationType = {
+  IGLESIA: 'IGLESIA',
+  GRUPO: 'GRUPO'
+} as const
+
+export type CongregationType = (typeof CongregationType)[keyof typeof CongregationType]
+
+
 export const StatPeriod = {
   ANNUAL: 'ANNUAL',
   MONTHLY: 'MONTHLY'

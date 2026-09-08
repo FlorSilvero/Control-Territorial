@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { createChurch, updateChurch } from "@/lib/actions/churches"
+import { CONGREGATION_TYPE_LABELS, type CongregationType } from "@/lib/format"
 import { toast } from "sonner"
 
 export function ChurchDialog({
@@ -33,11 +34,19 @@ export function ChurchDialog({
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  church?: { id: string; name: string; districtId: string; address?: string | null; notes?: string | null } | null
+  church?: {
+    id: string
+    name: string
+    type?: CongregationType
+    districtId: string
+    address?: string | null
+    notes?: string | null
+  } | null
   defaultDistrictId?: string
   districtOptions: { id: string; name: string }[]
 }) {
   const [name, setName] = useState(church?.name ?? "")
+  const [type, setType] = useState<CongregationType>(church?.type ?? "IGLESIA")
   const [districtId, setDistrictId] = useState(church?.districtId ?? defaultDistrictId ?? "")
   const [address, setAddress] = useState(church?.address ?? "")
   const [notes, setNotes] = useState(church?.notes ?? "")
@@ -55,14 +64,15 @@ export function ChurchDialog({
 
     startTransition(async () => {
       const res = isEditing
-        ? await updateChurch(church.id, { name, districtId, address, notes })
-        : await createChurch({ name, districtId, address, notes })
+        ? await updateChurch(church.id, { name, type, districtId, address, notes })
+        : await createChurch({ name, type, districtId, address, notes })
 
       if (res.ok) {
         toast.success(isEditing ? "Iglesia actualizada" : "Iglesia creada con éxito")
         onOpenChange(false)
         if (!isEditing) {
           setName("")
+          setType("IGLESIA")
           setAddress("")
           setNotes("")
         }
@@ -95,6 +105,26 @@ export function ChurchDialog({
               required
               minLength={2}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="church-type">Tipo de congregación *</Label>
+            <Select
+              value={type}
+              onValueChange={(value) => setType((value as CongregationType) ?? "IGLESIA")}
+              items={CONGREGATION_TYPE_LABELS}
+            >
+              <SelectTrigger id="church-type">
+                <SelectValue placeholder="Seleccionar tipo..." />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(CONGREGATION_TYPE_LABELS).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

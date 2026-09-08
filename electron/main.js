@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require("electron")
+const { app, BrowserWindow, dialog } = require("electron")
 const { spawn } = require("node:child_process")
 const path = require("node:path")
 const fs = require("node:fs")
@@ -26,6 +26,25 @@ function ensureDatabase() {
     const templatePath = path.join(process.resourcesPath, "db-template", "seed.db")
     fs.copyFileSync(templatePath, dbPath)
   }
+
+  // Al actualizar la app, la base que ya está instalada quedó con el esquema de
+  // la versión anterior. Sin esto el servidor arranca igual y recién revienta en
+  // la primera consulta, con un error que no dice nada. La plantilla recién
+  // copiada ya viene al día, así que en una instalación nueva esto no hace nada.
+  // Se carga acá y no arriba a propósito: un fallo al resolver el módulo debe
+  // caer en el catch de createWindow, que lo muestra en un diálogo, en lugar de
+  // tirar abajo main.js antes de que la app pueda decir nada.
+  const { migrate } = require("./migrate.js")
+  const { applied, snapshot } = migrate(
+    dbPath,
+    path.join(process.resourcesPath, "migrations"),
+    process.resourcesPath,
+  )
+  if (applied.length > 0) {
+    console.log(`[migrate] ${applied.length} migración(es) aplicada(s): ${applied.join(", ")}`)
+    console.log(`[migrate] copia previa en ${snapshot}`)
+  }
+
   return dbPath
 }
 
@@ -114,6 +133,12 @@ async function createWindow() {
 app.whenReady().then(() => {
   createWindow().catch((err) => {
     console.error(err)
+    // Sin esto la app se cierra sola y en silencio: quien la abre no tiene
+    // forma de saber qué pasó ni qué contarle a quien se la pasó.
+    const detalle = err.restoredFrom
+      ? `${err.message}\n\nTus datos quedaron como estaban. Copia de seguridad:\n${err.restoredFrom}`
+      : err.message
+    dialog.showErrorBox("No se pudo iniciar Control Territorial", detalle)
     app.quit()
   })
 })

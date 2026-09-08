@@ -31,9 +31,11 @@ prisma/*.db
 prisma/*.db-journal
 
 # ========================
-# Backups (contain user data — never commit)
+# Backups / dumps (contain user data — never commit)
 # ========================
-backups/
+/backups/
+prisma/data/dump-*.json
+prisma/data/supabase-bootstrap.sql
 
 # ========================
 # Logs

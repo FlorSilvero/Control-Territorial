@@ -258,6 +258,7 @@ export async function listChurches(
     return {
       id: c.id,
       name: c.name,
+      type: c.type,
       archivedAt: c.archivedAt,
       district: { id: c.district.id, name: c.district.name },
       currentPastor: current?.pastor
@@ -307,6 +308,7 @@ export async function getChurchDetail(orgId: string, id: string) {
   return {
     id: church.id,
     name: church.name,
+    type: church.type,
     address: church.address,
     notes: church.notes,
     archivedAt: church.archivedAt,

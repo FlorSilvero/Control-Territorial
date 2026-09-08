@@ -13,6 +13,9 @@ export default {
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: env("DATABASE_URL"),
+    // Migrations need a direct connection: Supabase's transaction pooler does
+    // not support the prepared statements and advisory locks the migrate
+    // engine relies on. DIRECT_URL is the port-5432 connection string.
+    url: process.env.DIRECT_URL ? env("DIRECT_URL") : env("DATABASE_URL"),
   },
 } satisfies PrismaConfig
