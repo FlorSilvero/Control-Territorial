@@ -15,7 +15,17 @@ export async function loginAction(
     return {}
   } catch (error) {
     if (error instanceof AuthError) {
-      return { error: "Email o contraseña incorrectos" }
+      // Only a rejected credential means the user typed something wrong.
+      // Anything else — most often the database being unreachable — would
+      // otherwise masquerade as a bad password on a login that can never
+      // succeed, sending the user off to guess at their own credentials.
+      if (error.type === "CredentialsSignin") {
+        return { error: "Email o contraseña incorrectos" }
+      }
+      console.error("[login] fallo ajeno a las credenciales:", error.type, error.cause ?? error)
+      return {
+        error: "No se pudo conectar con la base de datos. Revisá los logs del servidor.",
+      }
     }
     // Next.js redirect throws internally — rethrow so it can complete.
     throw error
