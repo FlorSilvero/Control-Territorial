@@ -9,6 +9,10 @@
     "lint": "eslint .",
     "seed": "tsx prisma/seed.ts",
     "import:dump": "tsx prisma/import-dump.ts",
+    "extract:bautismos": "tsx prisma/extract-bautismos.ts",
+    "import:bautismos": "tsx prisma/import-bautismos.ts",
+    "gen:bautismos-sql": "tsx scripts/gen-bautismos-sql.ts",
+    "gen:pastores-sql": "tsx scripts/gen-pastores-sql.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "postinstall": "prisma generate"
