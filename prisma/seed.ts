@@ -35,8 +35,6 @@ async function main() {
     },
   })
 
-  // Wipe domain data for a clean reseed (keeps org + user). Children first so
-  // no delete trips a foreign key.
   await prisma.auditLog.deleteMany({ where: { organizationId: org.id } })
   await prisma.statisticRecord.deleteMany({ where: { organizationId: org.id } })
   await prisma.pastorAssignment.deleteMany({ where: { organizationId: org.id } })

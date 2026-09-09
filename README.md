@@ -202,7 +202,7 @@ El proyecto enfrentó problemas que aparecen en sistemas reales de gestión, no 
 
 1. **Evitar agregados engañosos con períodos incompletos.** Se modeló explícitamente la diferencia entre membresía (*stock*) y bautismos (*flujo*), usando arrastre de snapshots para no subestimar totales.
 2. **Preservar la responsabilidad histórica.** Las reasignaciones pastorales no alteran el pasado; el modelo temporal mantiene ventanas de vigencia y permite atribución consistente de métricas.
-3. **Hacer convivir Excel y datos confiables.** Las importaciones toleran alias de encabezados, normalizan texto y reportan errores por fila sin convertir una carga parcial en una operación destructiva.
+3. **Hacer convivir Excel y datos confiables.** Las importaciones toleran alias de encabezados, normalizan texto y reportan errores por fila sin transformar una carga parcial en una operación destructiva
 4. **Preparar la plataforma para escalar organizacionalmente.** El aislamiento por organización está incorporado desde el modelo y las consultas, evitando una refactorización riesgosa al incorporar nuevos tenants.
 5. **Operar Prisma en serverless sin agotar PostgreSQL.** Se separaron las conexiones de runtime y migración: el pooler transaccional sirve a la aplicación, mientras que las migraciones usan conexión directa.
 6. **Evolucionar sin perder datos.** Archivado lógico, auditoría y migraciones permiten mejorar la estructura sin convertir los cambios de producto en pérdidas de información.
