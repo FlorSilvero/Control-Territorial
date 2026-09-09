@@ -143,7 +143,7 @@ export function DashboardGlobalView({ data }: { data: Awaited<ReturnType<typeof 
       </div>
 
       {/* Rankings Section */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2">
         {/* Top Distritos */}
         <Card>
           <CardHeader className="pb-3">
@@ -170,44 +170,6 @@ export function DashboardGlobalView({ data }: { data: Awaited<ReturnType<typeof 
                   </div>
                   <Badge variant="secondary" className="font-mono text-xs">
                     {d.baptisms} bautismos
-                  </Badge>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Top Iglesias */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Church className="size-4 text-primary" />
-              Top Iglesias por Bautismos
-            </CardTitle>
-            <CardDescription>Acumulado {currentYear}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {data.topChurches.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Sin registros.</p>
-            ) : (
-              data.topChurches.map((c, index) => (
-                <div
-                  key={c.name}
-                  className="flex items-center justify-between text-sm py-1 border-b last:border-0"
-                >
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <span className="flex size-5 items-center justify-center rounded-full bg-muted text-[11px] font-bold">
-                        {index + 1}
-                      </span>
-                      <span className="font-medium">{c.name}</span>
-                    </div>
-                    <span className="text-[11px] text-muted-foreground ml-7">
-                      {c.district}
-                    </span>
-                  </div>
-                  <Badge variant="secondary" className="font-mono text-xs">
-                    {c.baptisms} bautismos
                   </Badge>
                 </div>
               ))

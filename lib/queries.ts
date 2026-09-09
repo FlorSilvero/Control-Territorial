@@ -385,15 +385,10 @@ export async function getPastorDetail(orgId: string, id: string) {
       endDate: w.endDate,
     }))
 
+    // Acumulado histórico de la gestión: la ficha del pastor traza toda su
+    // trayectoria, así que acá NO se filtra por año (a diferencia del ranking
+    // del dashboard, que sí mide únicamente el año en curso).
     const baptisms = attributeBaptisms(rows, districtWindows).get(a.id) ?? 0
-
-    // Acumulado del año en curso atribuido a esta gestión: alimenta la tarjeta
-    // "Bautismos Acumulados" de la ficha del pastor, que mide el año actual.
-    const baptismsThisYear =
-      attributeBaptisms(
-        rows.filter((r) => r.year === CURRENT_YEAR),
-        districtWindows,
-      ).get(a.id) ?? 0
 
     // Monthly breakdown (active tenure only): MONTHLY rows pin an exact
     // month, so a direct window lookup is precise here (no proration needed).
@@ -413,7 +408,6 @@ export async function getPastorDetail(orgId: string, id: string) {
       startDate: a.startDate,
       endDate: a.endDate,
       baptisms,
-      baptismsThisYear,
       currentYearMonthly: a.endDate === null ? monthly.slice(0, CURRENT_MONTH) : null,
     }
   })
@@ -471,7 +465,6 @@ export async function getDashboardData(orgId: string) {
   let baptismsThisYear = 0
 
   const districtRanking: { name: string; baptisms: number; members: number }[] = []
-  const churchRanking: { name: string; district: string; baptisms: number }[] = []
   const yearMap = new Map<number, number>()
   const monthMap = new Map<number, number>()
   const membersByDistrict: { name: string; members: number }[] = []
@@ -492,11 +485,6 @@ export async function getDashboardData(orgId: string) {
           monthMap.set(r.month, (monthMap.get(r.month) ?? 0) + r.baptismCount)
         }
       }
-      churchRanking.push({
-        name: c.name,
-        district: d.name,
-        baptisms: s.baptismsThisYear,
-      })
     }
     districtRanking.push({ name: d.name, baptisms: dBaptisms, members: dMembers })
     membersByDistrict.push({ name: d.name, members: dMembers })
@@ -522,7 +510,6 @@ export async function getDashboardData(orgId: string) {
       baptisms: baptismsThisYear,
     },
     topDistricts: [...districtRanking].sort((a, b) => b.baptisms - a.baptisms).slice(0, 5),
-    topChurches: [...churchRanking].sort((a, b) => b.baptisms - a.baptisms).slice(0, 5),
     membersByDistrict: membersByDistrict.sort((a, b) => b.members - a.members),
     baptismsByYear,
     baptismsByMonth,

@@ -66,7 +66,6 @@ type PastorDetailData = {
     startDate: Date
     endDate: Date | null
     baptisms: number
-    baptismsThisYear: number
     currentYearMonthly: { month: number; baptisms: number }[] | null
   }[]
 }
@@ -103,7 +102,7 @@ export function PastorDetailClient({
     })
   }
 
-  const baptismsThisYear = pastor.assignments.reduce((acc, a) => acc + a.baptismsThisYear, 0)
+  const totalBaptismsAcrossTenures = pastor.assignments.reduce((acc, a) => acc + a.baptisms, 0)
 
   const childrenList = (pastor.childrenNames ?? "")
     .split(/[,\n]/)
@@ -221,14 +220,12 @@ export function PastorDetailClient({
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">
-              Bautismos Acumulados
+              Total Bautismos Acumulados
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="font-serif text-2xl font-bold">{baptismsThisYear}</div>
-            <p className="text-[11px] text-muted-foreground mt-1">
-              Acumulado {new Date().getFullYear()} en sus gestiones
-            </p>
+            <div className="font-serif text-2xl font-bold">{totalBaptismsAcrossTenures}</div>
+            <p className="text-[11px] text-muted-foreground mt-1">Durante todas sus gestiones</p>
           </CardContent>
         </Card>
       </div>
