@@ -239,7 +239,7 @@ export function ChurchDetailClient({
           <CardContent>
             <div className="font-serif text-2xl font-bold">{church.baptismsThisYear}</div>
             <p className="text-[11px] text-muted-foreground mt-1">
-              {church.baptismsTotal} bautismos históricos
+              Acumulado {new Date().getFullYear()}
             </p>
           </CardContent>
         </Card>

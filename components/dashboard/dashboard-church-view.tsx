@@ -9,10 +9,10 @@ import type { getChurchDetail } from "@/lib/queries"
 type ChurchDetail = NonNullable<Awaited<ReturnType<typeof getChurchDetail>>>
 
 export function DashboardChurchView({ data }: { data: ChurchDetail }) {
+  const currentYear = new Date().getFullYear()
   const kpis = [
     { title: "Miembros actuales", value: data.currentMembers.toLocaleString("es-AR"), icon: Users },
-    { title: "Bautismos este año", value: data.baptismsThisYear, icon: Waves },
-    { title: "Bautismos acumulados", value: data.baptismsTotal, icon: Waves },
+    { title: `Bautismos acumulados ${currentYear}`, value: data.baptismsThisYear, icon: Waves },
     { title: "Distrito", value: data.district.name, icon: MapPinned },
   ]
 
@@ -42,7 +42,7 @@ export function DashboardChurchView({ data }: { data: ChurchDetail }) {
         </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {kpis.map((kpi) => {
           const Icon = kpi.icon
           return (

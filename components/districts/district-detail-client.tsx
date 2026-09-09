@@ -250,7 +250,7 @@ export function DistrictDetailClient({
           <CardContent>
             <div className="font-serif text-2xl font-bold">{district.baptismsThisYear}</div>
             <p className="text-[11px] text-muted-foreground mt-1">
-              En {new Date().getFullYear()} · {district.baptismsTotal} histórico
+              Acumulado {new Date().getFullYear()}
             </p>
           </CardContent>
         </Card>

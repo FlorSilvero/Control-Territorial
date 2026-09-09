@@ -387,6 +387,14 @@ export async function getPastorDetail(orgId: string, id: string) {
 
     const baptisms = attributeBaptisms(rows, districtWindows).get(a.id) ?? 0
 
+    // Acumulado del año en curso atribuido a esta gestión: alimenta la tarjeta
+    // "Bautismos Acumulados" de la ficha del pastor, que mide el año actual.
+    const baptismsThisYear =
+      attributeBaptisms(
+        rows.filter((r) => r.year === CURRENT_YEAR),
+        districtWindows,
+      ).get(a.id) ?? 0
+
     // Monthly breakdown (active tenure only): MONTHLY rows pin an exact
     // month, so a direct window lookup is precise here (no proration needed).
     // Falls back to the earliest tenure for pre-history rows, same as
@@ -405,6 +413,7 @@ export async function getPastorDetail(orgId: string, id: string) {
       startDate: a.startDate,
       endDate: a.endDate,
       baptisms,
+      baptismsThisYear,
       currentYearMonthly: a.endDate === null ? monthly.slice(0, CURRENT_MONTH) : null,
     }
   })
@@ -456,7 +465,10 @@ export async function getDashboardData(orgId: string) {
 
   let churchCount = 0
   let totalMembers = 0
-  let totalBaptisms = 0
+  // "Acumulado" en toda la UI significa el acumulado del AÑO EN CURSO, no el
+  // histórico de todos los años. El histórico sigue disponible en el gráfico
+  // por año (yearMap), que es explícitamente comparativo.
+  let baptismsThisYear = 0
 
   const districtRanking: { name: string; baptisms: number; members: number }[] = []
   const churchRanking: { name: string; district: string; baptisms: number }[] = []
@@ -472,9 +484,9 @@ export async function getDashboardData(orgId: string) {
       const s = computeChurchStats(c.statistics as StatRow[])
       totalMembers += s.currentMembers
       dMembers += s.currentMembers
+      baptismsThisYear += s.baptismsThisYear
+      dBaptisms += s.baptismsThisYear
       for (const r of c.statistics as StatRow[]) {
-        totalBaptisms += r.baptismCount
-        dBaptisms += r.baptismCount
         yearMap.set(r.year, (yearMap.get(r.year) ?? 0) + r.baptismCount)
         if (r.year === CURRENT_YEAR && r.month) {
           monthMap.set(r.month, (monthMap.get(r.month) ?? 0) + r.baptismCount)
@@ -483,7 +495,7 @@ export async function getDashboardData(orgId: string) {
       churchRanking.push({
         name: c.name,
         district: d.name,
-        baptisms: s.baptismsTotal,
+        baptisms: s.baptismsThisYear,
       })
     }
     districtRanking.push({ name: d.name, baptisms: dBaptisms, members: dMembers })
@@ -507,7 +519,7 @@ export async function getDashboardData(orgId: string) {
       churches: churchCount,
       pastors: pastorCount,
       members: totalMembers,
-      baptisms: totalBaptisms,
+      baptisms: baptismsThisYear,
     },
     topDistricts: [...districtRanking].sort((a, b) => b.baptisms - a.baptisms).slice(0, 5),
     topChurches: [...churchRanking].sort((a, b) => b.baptisms - a.baptisms).slice(0, 5),
@@ -522,6 +534,7 @@ async function getPastorBaptismRanking(orgId: string) {
   // Walk district-by-district so each statistic row is attributed once,
   // against the *complete* set of assignments that overlap it — matching
   // getPastorDetail's logic exactly, so the two views always agree.
+  // Only current-year rows count: the dashboard ranks the year in course.
   const districts = await prisma.district.findMany({
     where: { organizationId: orgId },
     include: {
@@ -533,7 +546,9 @@ async function getPastorBaptismRanking(orgId: string) {
   const totals = new Map<string, { name: string; baptisms: number; archived: boolean }>()
 
   for (const d of districts) {
-    const rows: StatRow[] = d.churches.flatMap((c) => c.statistics as StatRow[])
+    const rows: StatRow[] = d.churches.flatMap((c) =>
+      (c.statistics as StatRow[]).filter((r) => r.year === CURRENT_YEAR),
+    )
     const windows: AssignmentWindow[] = d.assignments.map((a) => ({
       id: a.id,
       pastorId: a.pastorId,

@@ -9,11 +9,11 @@ import type { getDistrictDetail } from "@/lib/queries"
 type DistrictDetail = NonNullable<Awaited<ReturnType<typeof getDistrictDetail>>>
 
 export function DashboardDistrictView({ data }: { data: DistrictDetail }) {
+  const currentYear = new Date().getFullYear()
   const kpis = [
     { title: "Iglesias", value: data.churchCount, icon: Church },
     { title: "Miembros", value: data.totalMembers.toLocaleString("es-AR"), icon: Users },
-    { title: "Bautismos este año", value: data.baptismsThisYear, icon: Waves },
-    { title: "Bautismos acumulados", value: data.baptismsTotal, icon: Waves },
+    { title: `Bautismos acumulados ${currentYear}`, value: data.baptismsThisYear, icon: Waves },
   ]
 
   const pastorName = data.currentAssignment
@@ -21,7 +21,9 @@ export function DashboardDistrictView({ data }: { data: DistrictDetail }) {
     : "Sin pastor asignado"
 
   const yearlyChartData = data.yearly.map((y) => ({ year: String(y.year), baptisms: y.baptisms }))
-  const churchesRanked = [...data.churches].sort((a, b) => b.baptismsTotal - a.baptismsTotal)
+  const churchesRanked = [...data.churches].sort(
+    (a, b) => b.baptismsThisYear - a.baptismsThisYear,
+  )
 
   return (
     <div className="space-y-8">
@@ -42,7 +44,7 @@ export function DashboardDistrictView({ data }: { data: DistrictDetail }) {
         </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {kpis.map((kpi) => {
           const Icon = kpi.icon
           return (
@@ -83,7 +85,7 @@ export function DashboardDistrictView({ data }: { data: DistrictDetail }) {
               <Church className="size-4 text-primary" />
               Iglesias del distrito
             </CardTitle>
-            <CardDescription>Ordenadas por bautismos acumulados.</CardDescription>
+            <CardDescription>Ordenadas por bautismos acumulados en {currentYear}.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {churchesRanked.length === 0 ? (
@@ -100,7 +102,7 @@ export function DashboardDistrictView({ data }: { data: DistrictDetail }) {
                       {c.currentMembers} miembros
                     </Badge>
                     <Badge variant="outline" className="font-mono text-xs">
-                      {c.baptismsTotal} bautismos
+                      {c.baptismsThisYear} bautismos
                     </Badge>
                   </div>
                 </div>

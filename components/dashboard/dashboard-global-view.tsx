@@ -10,6 +10,7 @@ import Link from "next/link"
 import type { getDashboardData } from "@/lib/queries"
 
 export function DashboardGlobalView({ data }: { data: Awaited<ReturnType<typeof getDashboardData>> }) {
+  const currentYear = new Date().getFullYear()
   const kpis = [
     {
       title: "Distritos Pastorales",
@@ -43,7 +44,7 @@ export function DashboardGlobalView({ data }: { data: Awaited<ReturnType<typeof 
       title: "Bautismos Acumulados",
       value: data.kpis.baptisms.toLocaleString("es-AR"),
       icon: Waves,
-      description: "Histórico acumulado",
+      description: `Acumulado ${currentYear}`,
       href: null,
     },
   ]
@@ -102,7 +103,7 @@ export function DashboardGlobalView({ data }: { data: Awaited<ReturnType<typeof 
               Evolución de Bautismos por Año
             </CardTitle>
             <CardDescription>
-              Comparativa histórica de baptismos acumulados por año.
+              Total de bautismos registrados en cada año.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -150,7 +151,7 @@ export function DashboardGlobalView({ data }: { data: Awaited<ReturnType<typeof 
               <Trophy className="size-4 text-amber-500" />
               Top Distritos por Bautismos
             </CardTitle>
-            <CardDescription>Mayor cantidad acumulada</CardDescription>
+            <CardDescription>Acumulado {currentYear}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {data.topDistricts.length === 0 ? (
@@ -183,7 +184,7 @@ export function DashboardGlobalView({ data }: { data: Awaited<ReturnType<typeof 
               <Church className="size-4 text-primary" />
               Top Iglesias por Bautismos
             </CardTitle>
-            <CardDescription>Iglesias con más conversiones</CardDescription>
+            <CardDescription>Acumulado {currentYear}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {data.topChurches.length === 0 ? (
@@ -221,7 +222,7 @@ export function DashboardGlobalView({ data }: { data: Awaited<ReturnType<typeof 
               <UserCheck className="size-4 text-emerald-600" />
               Pastores Destacados
             </CardTitle>
-            <CardDescription>Bautismos durante sus gestiones</CardDescription>
+            <CardDescription>Acumulado {currentYear} en sus gestiones</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {data.pastorRanking.length === 0 ? (
