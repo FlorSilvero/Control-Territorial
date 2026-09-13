@@ -1,6 +1,7 @@
 import "server-only"
 import { prisma } from "@/lib/prisma"
 import { normalizeText } from "@/lib/utils"
+import { formatDuration, tenureInMonths } from "@/lib/date-utils"
 import {
   computeChurchStats,
   assignmentForDate,
@@ -468,6 +469,17 @@ export async function getDashboardData(orgId: string) {
   const yearMap = new Map<number, number>()
   const monthMap = new Map<number, number>()
   const membersByDistrict: { name: string; members: number }[] = []
+  // Antigüedad del pastor actual en cada distrito (asignación con endDate = null).
+  const pastorTenures: {
+    pastorId: string
+    pastorName: string
+    districtId: string
+    districtName: string
+    since: Date
+    months: number
+    duration: string
+  }[] = []
+  const vacantDistricts: { id: string; name: string }[] = []
 
   for (const d of districts) {
     let dBaptisms = 0
@@ -488,6 +500,21 @@ export async function getDashboardData(orgId: string) {
     }
     districtRanking.push({ name: d.name, baptisms: dBaptisms, members: dMembers })
     membersByDistrict.push({ name: d.name, members: dMembers })
+
+    const current = d.assignments[0]
+    if (current && current.pastor.archivedAt == null) {
+      pastorTenures.push({
+        pastorId: current.pastorId,
+        pastorName: `${current.pastor.firstName} ${current.pastor.lastName}`,
+        districtId: d.id,
+        districtName: d.name,
+        since: current.startDate,
+        months: tenureInMonths(current.startDate, null),
+        duration: formatDuration(current.startDate, null),
+      })
+    } else {
+      vacantDistricts.push({ id: d.id, name: d.name })
+    }
   }
 
   const baptismsByYear = Array.from(yearMap.entries())
@@ -514,6 +541,8 @@ export async function getDashboardData(orgId: string) {
     baptismsByYear,
     baptismsByMonth,
     pastorRanking,
+    pastorTenures: pastorTenures.sort((a, b) => b.months - a.months),
+    vacantDistricts: vacantDistricts.sort((a, b) => a.name.localeCompare(b.name)),
   }
 }
 

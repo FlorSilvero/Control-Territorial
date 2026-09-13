@@ -5,9 +5,24 @@ import {
   BaptismsByMonthChart,
   MembersByDistrictChart,
 } from "@/components/dashboard/dashboard-charts"
-import { MapPinned, Church, Users, UserCheck, Waves, Trophy, TrendingUp } from "lucide-react"
+import {
+  MapPinned,
+  Church,
+  Users,
+  UserCheck,
+  Waves,
+  Trophy,
+  TrendingUp,
+  Clock,
+  AlertTriangle,
+} from "lucide-react"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
+import { formatDate } from "@/lib/date-utils"
 import type { getDashboardData } from "@/lib/queries"
+
+/** Pastores con más de este tiempo en su distrito se resaltan en el dashboard. */
+const LONG_TENURE_MONTHS = 36
 
 export function DashboardGlobalView({ data }: { data: Awaited<ReturnType<typeof getDashboardData>> }) {
   const currentYear = new Date().getFullYear()
@@ -142,6 +157,8 @@ export function DashboardGlobalView({ data }: { data: Awaited<ReturnType<typeof 
         </Card>
       </div>
 
+      <PastorTenureCard tenures={data.pastorTenures} vacantDistricts={data.vacantDistricts} />
+
       {/* Rankings Section */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Top Distritos */}
@@ -211,5 +228,118 @@ export function DashboardGlobalView({ data }: { data: Awaited<ReturnType<typeof 
         </Card>
       </div>
     </div>
+  )
+}
+
+type DashboardData = Awaited<ReturnType<typeof getDashboardData>>
+
+function PastorTenureCard({
+  tenures,
+  vacantDistricts,
+}: {
+  tenures: DashboardData["pastorTenures"]
+  vacantDistricts: DashboardData["vacantDistricts"]
+}) {
+  const longCount = tenures.filter((t) => t.months > LONG_TENURE_MONTHS).length
+  const maxMonths = Math.max(LONG_TENURE_MONTHS, ...tenures.map((t) => t.months))
+  const markerPct = (LONG_TENURE_MONTHS / maxMonths) * 100
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1.5">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Clock className="size-4 text-primary" />
+              Tiempo de cada Pastor en su Distrito
+            </CardTitle>
+            <CardDescription>
+              Ordenado de mayor a menor antigüedad en la asignación actual. La línea marca los 3
+              años.
+            </CardDescription>
+          </div>
+          {tenures.length > 0 && (
+            <div className="flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-400 shrink-0">
+              <AlertTriangle className="size-3.5" />
+              <span>
+                <span className="font-bold">{longCount}</span> de {tenures.length}{" "}
+                {tenures.length === 1 ? "pastor lleva" : "pastores llevan"} más de 3 años
+              </span>
+            </div>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {tenures.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No hay pastores asignados actualmente.</p>
+        ) : (
+          <ul className="lg:columns-2 lg:gap-x-8">
+            {tenures.map((t) => {
+              const isLong = t.months > LONG_TENURE_MONTHS
+              const widthPct = Math.max(2, (t.months / maxMonths) * 100)
+              return (
+                <li
+                  key={`${t.districtId}-${t.pastorId}`}
+                  className={cn(
+                    "break-inside-avoid border-l-2 pl-3 py-2 mb-1 rounded-r-md",
+                    isLong ? "border-amber-500 bg-amber-500/5" : "border-transparent",
+                  )}
+                >
+                  <div className="flex items-baseline justify-between gap-3 text-sm">
+                    <div className="min-w-0 truncate">
+                      <Link href={`/pastors/${t.pastorId}`} className="font-medium hover:underline">
+                        {t.pastorName}
+                      </Link>
+                      <span className="text-muted-foreground"> · </span>
+                      <Link
+                        href={`/districts/${t.districtId}`}
+                        className="text-muted-foreground hover:underline"
+                      >
+                        {t.districtName}
+                      </Link>
+                    </div>
+                    <span
+                      className={cn(
+                        "shrink-0 text-xs font-semibold tabular-nums",
+                        isLong ? "text-amber-700 dark:text-amber-400" : "text-foreground",
+                      )}
+                    >
+                      {t.duration}
+                    </span>
+                  </div>
+                  <div className="relative mt-1.5 h-1.5 rounded-full bg-muted">
+                    <div
+                      className={cn("h-full rounded-full", isLong ? "bg-amber-500" : "bg-primary/70")}
+                      style={{ width: `${widthPct}%` }}
+                    />
+                    <div
+                      className="absolute -top-0.5 h-2.5 w-px bg-foreground/40"
+                      style={{ left: `${markerPct}%` }}
+                      aria-hidden
+                    />
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Desde {formatDate(t.since)}
+                  </p>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+
+        {vacantDistricts.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-1.5 border-t pt-3 text-xs text-muted-foreground">
+            <span>Distritos sin pastor asignado:</span>
+            {vacantDistricts.map((d) => (
+              <Link key={d.id} href={`/districts/${d.id}`}>
+                <Badge variant="outline" className="hover:bg-muted">
+                  {d.name}
+                </Badge>
+              </Link>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
