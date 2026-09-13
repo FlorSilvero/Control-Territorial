@@ -39,6 +39,41 @@ export function pick(values: Record<string, string>, aliases: readonly string[])
  * result | hyperlink | ...).
  */
 export async function readWorkbookRows(buffer: ArrayBuffer): Promise<SheetRow[]> {
+  const sheet = (await loadedWorkbook(buffer)).worksheets[0]
+  if (!sheet) throw new ExcelReadError("El archivo no tiene ninguna hoja de cálculo")
+  return sheetRows(sheet)
+}
+
+/** One worksheet's rows, plus the sheet name a caller may read a year out of. */
+export type NamedSheet = { name: string; rows: SheetRow[] }
+
+/**
+ * Same parsing as readWorkbookRows, but across every worksheet instead of just
+ * the first. The "Bautismos" planilla keeps one sheet per year, so importing a
+ * whole workbook in one upload is the normal case rather than the exception.
+ *
+ * Sheets whose header row can't be found (a cover page, a blank sheet left
+ * behind) come back with no rows instead of aborting the file: it's up to the
+ * caller to decide whether an empty sheet matters.
+ */
+export async function readAllSheetRows(buffer: ArrayBuffer): Promise<NamedSheet[]> {
+  const workbook = await loadedWorkbook(buffer)
+  const sheets: NamedSheet[] = []
+  workbook.eachSheet((sheet) => {
+    let rows: SheetRow[] = []
+    try {
+      rows = sheetRows(sheet)
+    } catch {
+      rows = []
+    }
+    sheets.push({ name: sheet.name, rows })
+  })
+  if (sheets.length === 0) throw new ExcelReadError("El archivo no tiene ninguna hoja de cálculo")
+  return sheets
+}
+
+/** Shared by both readers: validate the bytes, then hand back a loaded book. */
+async function loadedWorkbook(buffer: ArrayBuffer): Promise<ExcelJS.Workbook> {
   assertReadableXlsx(buffer)
 
   const workbook = new ExcelJS.Workbook()
@@ -47,10 +82,10 @@ export async function readWorkbookRows(buffer: ArrayBuffer): Promise<SheetRow[]>
   } catch {
     throw new ExcelReadError("No se pudo leer el archivo. Verificá que sea un .xlsx válido.")
   }
+  return workbook
+}
 
-  const sheet = workbook.worksheets[0]
-  if (!sheet) throw new ExcelReadError("El archivo no tiene ninguna hoja de cálculo")
-
+function sheetRows(sheet: ExcelJS.Worksheet): SheetRow[] {
   const headerRowNumber = findHeaderRow(sheet)
   if (headerRowNumber == null) throw new ExcelReadError("El archivo está vacío")
 
@@ -144,6 +179,13 @@ function cellText(value: ExcelJS.CellValue): string {
   return String(value).trim()
 }
 
+/** One worksheet of a multi-sheet export. */
+export type SheetSpec = {
+  name: string
+  headers: string[]
+  rows: (string | number)[][]
+}
+
 /**
  * Builds an in-memory .xlsx workbook from a header row and data rows, with the
  * header frozen and filterable and columns sized to their content so the
@@ -154,26 +196,47 @@ export async function writeWorkbook(
   rows: (string | number)[][],
   sheetName = "Datos",
 ): Promise<Buffer> {
+  return writeSheets([{ name: sheetName, headers, rows }])
+}
+
+/**
+ * Same as writeWorkbook, but with one worksheet per spec — the shape the
+ * "Bautismos" export needs, where each year is its own sheet.
+ */
+export async function writeSheets(sheets: SheetSpec[]): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook()
-  const sheet = workbook.addWorksheet(sheetName, {
-    views: [{ state: "frozen", ySplit: 1 }],
-  })
 
-  sheet.addRow(headers).font = { bold: true }
-  for (const row of rows) sheet.addRow(row)
+  for (const spec of sheets) {
+    const sheet = workbook.addWorksheet(sheetName(spec.name), {
+      views: [{ state: "frozen", ySplit: 1 }],
+    })
 
-  sheet.autoFilter = {
-    from: { row: 1, column: 1 },
-    to: { row: 1, column: Math.max(headers.length, 1) },
+    sheet.addRow(spec.headers).font = { bold: true }
+    for (const row of spec.rows) sheet.addRow(row)
+
+    sheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: 1, column: Math.max(spec.headers.length, 1) },
+    }
+    sheet.columns.forEach((col, index) => {
+      const widest = spec.rows.reduce(
+        (max, row) => Math.max(max, String(row[index] ?? "").length),
+        spec.headers[index]?.length ?? 0,
+      )
+      col.width = Math.min(Math.max(widest + 2, 8), 50)
+    })
   }
-  sheet.columns.forEach((col, index) => {
-    const widest = rows.reduce(
-      (max, row) => Math.max(max, String(row[index] ?? "").length),
-      headers[index]?.length ?? 0,
-    )
-    col.width = Math.min(Math.max(widest + 2, 12), 50)
-  })
 
   const buffer = await workbook.xlsx.writeBuffer()
   return Buffer.from(buffer)
+}
+
+/**
+ * Excel rejects sheet names over 31 chars or containing : \ / ? * [ ], and
+ * silently corrupts the file rather than reporting it, so names are sanitised
+ * here instead of at every call site.
+ */
+function sheetName(raw: string): string {
+  const cleaned = raw.replace(/[:\\/?*[\]]/g, "-").trim()
+  return (cleaned || "Datos").slice(0, 31)
 }

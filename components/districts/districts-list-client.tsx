@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { DistrictDialog } from "@/components/districts/district-dialog"
 import { ImportDistrictStatsDialog } from "@/components/districts/import-district-stats-dialog"
 import { ImportRosterDialog } from "@/components/districts/import-roster-dialog"
+import { ImportBaptismsDialog } from "@/components/districts/import-baptisms-dialog"
 import { normalizeText } from "@/lib/utils"
 import { MapPinned, Church, Users, Waves, UserCheck, Plus, Upload, Download, Search } from "lucide-react"
 
@@ -38,6 +39,7 @@ export function DistrictsListClient({
   const [createOpen, setCreateOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [importRosterOpen, setImportRosterOpen] = useState(false)
+  const [importBaptismsOpen, setImportBaptismsOpen] = useState(false)
   const [search, setSearch] = useState("")
 
   const filteredDistricts = districts.filter((d) => {
@@ -93,6 +95,25 @@ export function DistrictsListClient({
           >
             <Download className="size-4" />
             Exportar estadísticas
+          </Button>
+          {canEdit && (
+            <Button
+              variant="outline"
+              onClick={() => setImportBaptismsOpen(true)}
+              className="gap-2 shrink-0"
+            >
+              <Upload className="size-4" />
+              Importar bautismos
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<a href="/api/export/baptisms" />}
+            className="gap-2 shrink-0"
+          >
+            <Download className="size-4" />
+            Exportar bautismos
           </Button>
           {canEdit && (
             <Button onClick={() => setCreateOpen(true)} className="gap-2 shrink-0">
@@ -210,6 +231,7 @@ export function DistrictsListClient({
       {/* Dialogs */}
       <DistrictDialog open={createOpen} onOpenChange={setCreateOpen} />
       <ImportDistrictStatsDialog open={importOpen} onOpenChange={setImportOpen} />
+      <ImportBaptismsDialog open={importBaptismsOpen} onOpenChange={setImportBaptismsOpen} />
       <ImportRosterDialog open={importRosterOpen} onOpenChange={setImportRosterOpen} />
     </div>
   )

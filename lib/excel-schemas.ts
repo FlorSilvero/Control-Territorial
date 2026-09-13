@@ -89,3 +89,56 @@ export const ROSTER_EXAMPLE_ROWS: string[][] = [
   ["Cerdá Pissano Nestor Gabriel", "Avellaneda", "Quilmes", "Iglesia", "92"],
   ["Caviglione Darío Marcelo", "Boedo", "Bajo Flores Sur", "Grupo", "56"],
 ]
+
+/**
+ * The 12 month columns of the "Bautismos <año>" planilla, in sheet order.
+ * Index + 1 is the month number, so the position in this array is what maps a
+ * column to StatisticRecord.month.
+ */
+export const MONTH_COLUMNS = [
+  { label: "Ene", aliases: ["Enero", "1"] },
+  { label: "Feb", aliases: ["Febrero", "2"] },
+  { label: "Mar", aliases: ["Marzo", "3"] },
+  { label: "Abr", aliases: ["Abril", "4"] },
+  { label: "Mayo", aliases: ["May", "5"] },
+  { label: "Jun", aliases: ["Junio", "6"] },
+  { label: "Jul", aliases: ["Julio", "7"] },
+  { label: "Ago", aliases: ["Agosto", "8"] },
+  { label: "Set", aliases: ["Sep", "Sept", "Setiembre", "Septiembre", "9"] },
+  { label: "Oct", aliases: ["Octubre", "10"] },
+  { label: "Nov", aliases: ["Noviembre", "11"] },
+  { label: "Dic", aliases: ["Diciembre", "12"] },
+] as const satisfies readonly ColumnSpec[]
+
+/**
+ * The "Bautismos <año>" planilla: one row per district, one column per month,
+ * one sheet per year. Unlike STATISTIC_COLUMNS (one row per church *and*
+ * month), this is the layout the entity actually keeps its baptism history in,
+ * so it can be exported, edited in Excel and imported back unchanged.
+ *
+ * Responsable, Total, Blanco and % are written on export for the sheet to read
+ * like the original planilla, and ignored on import: the first two are derived
+ * from data the app already has, and the app has nowhere to store a goal.
+ */
+export const BAPTISM_MATRIX_COLUMNS = [
+  { label: "Distrito", aliases: ["Distrito pastoral"], required: true },
+  { label: "Responsable", aliases: ["Pastor", "Pastor responsable"] },
+  ...MONTH_COLUMNS,
+  { label: "Total", aliases: ["Total del año"] },
+  { label: "Blanco", aliases: ["Meta", "Objetivo"] },
+  { label: "%", aliases: ["Porcentaje"] },
+] as const satisfies readonly ColumnSpec[]
+
+/**
+ * Accepted on import but never exported: it lets a single-sheet file say which
+ * year each row belongs to when the sheet isn't named "Bautismos <año>".
+ */
+export const BAPTISM_YEAR_COLUMN = {
+  label: "Año",
+  aliases: ["Anio", "Year", "Ejercicio"],
+} as const satisfies ColumnSpec
+
+export const BAPTISM_MATRIX_EXAMPLE_ROWS: string[][] = [
+  ["Avellaneda", "Cerdá Pissano Nestor Gabriel", "", "3", "", "2", "1", "1", "", "", "3", "8", "7", "25", "20", "125,0%"],
+  ["Berazategui", "Maurín, Elías", "", "", "", "2", "1", "", "2", "", "", "", "6", "4", "15", "45", "33,3%"],
+]
