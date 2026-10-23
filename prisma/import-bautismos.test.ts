@@ -34,7 +34,12 @@ describe("bautismos históricos", () => {
     }
   })
 
+  // Septiembre 2026 ya trae bautismos y cae sobre el snapshot de membresía: el
+  // SQL sólo puede actualizar baptismCount en los registros existentes.
   it("no pisa el snapshot de membresía de septiembre 2026", () => {
-    expect(periods.some((p) => p.year === 2026 && p.month === 9)).toBe(false)
+    const sql = fs.readFileSync(path.join(import.meta.dirname, "data", "bautismos-historicos.sql"), "utf8")
+    const onConflict = sql.slice(sql.indexOf("DO UPDATE"), sql.indexOf("COMMIT;"))
+    expect(onConflict).toContain('"baptismCount"')
+    expect(onConflict).not.toContain('"memberCount"')
   })
 })

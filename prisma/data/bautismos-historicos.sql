@@ -1,5 +1,5 @@
 -- Control Territorial — bautismos históricos 2021-2026
--- Generado por scripts/gen-bautismos-sql.ts desde Bautismos 2010-2026.xlsx
+-- Generado por scripts/gen-bautismos-sql.ts desde Bautismos 2010-2026.pdf
 --
 -- Pegar entero en el editor SQL de Supabase y ejecutar. Es idempotente:
 -- correrlo dos veces deja la base igual.
@@ -891,6 +891,7 @@ INSERT INTO _bautismos (distrito, iglesia, anio, mes, bautismos) VALUES
   ('Avellaneda', 'Avellaneda', 2026, 4, 8),
   ('Avellaneda', 'Avellaneda', 2026, 7, 1),
   ('Avellaneda', 'Avellaneda', 2026, 8, 1),
+  ('Avellaneda', 'Avellaneda', 2026, 9, 7),
   ('Berazategui', 'Berazategui', 2026, 1, 1),
   ('Berazategui', 'Berazategui', 2026, 2, -1),
   ('Berazategui', 'Berazategui', 2026, 4, 6),
@@ -899,6 +900,7 @@ INSERT INTO _bautismos (distrito, iglesia, anio, mes, bautismos) VALUES
   ('Boedo', 'Boedo', 2026, 3, 1),
   ('Boedo', 'Boedo', 2026, 4, 3),
   ('Boedo', 'Boedo', 2026, 6, 1),
+  ('Boedo', 'Boedo', 2026, 9, 9),
   ('Castelar', 'Castelar', 2026, 3, 4),
   ('Castelar', 'Castelar', 2026, 4, 2),
   ('Castelar', 'Castelar', 2026, 8, 1),
@@ -911,16 +913,20 @@ INSERT INTO _bautismos (distrito, iglesia, anio, mes, bautismos) VALUES
   ('Florencio Varela', 'Florencio Varela', 2026, 4, 2),
   ('Florencio Varela', 'Florencio Varela', 2026, 5, 4),
   ('Florencio Varela', 'Florencio Varela', 2026, 8, 1),
+  ('Florencio Varela', 'Florencio Varela', 2026, 9, 2),
   ('González Catán', 'González Catán', 2026, 3, 2),
   ('González Catán', 'González Catán', 2026, 4, 1),
   ('González Catán', 'González Catán', 2026, 5, 1),
+  ('González Catán', 'González Catán', 2026, 9, 1),
   ('Guernica', 'Guernica', 2026, 3, 6),
   ('Guernica', 'Guernica', 2026, 5, 3),
+  ('Guernica', 'Guernica', 2026, 9, 8),
   ('Instituto Balcarce', 'Instituto Balcarce', 2026, 1, 1),
   ('Instituto Balcarce', 'Instituto Balcarce', 2026, 3, 1),
   ('La Costa', 'San Bernardo', 2026, 3, 1),
   ('La Costa', 'San Bernardo', 2026, 5, 2),
   ('La Costa', 'San Bernardo', 2026, 6, 3),
+  ('La Costa', 'San Bernardo', 2026, 9, 1),
   ('La Plata Centro', 'La Plata Centro', 2026, 1, 3),
   ('La Plata Centro', 'La Plata Centro', 2026, 2, 2),
   ('La Plata Centro', 'La Plata Centro', 2026, 4, 4),
@@ -929,6 +935,7 @@ INSERT INTO _bautismos (distrito, iglesia, anio, mes, bautismos) VALUES
   ('La Plata Sur', 'Lisandro Olmos', 2026, 3, 2),
   ('La Plata Sur', 'Lisandro Olmos', 2026, 4, 1),
   ('La Plata Sur', 'Lisandro Olmos', 2026, 6, 4),
+  ('La Plata Sur', 'Lisandro Olmos', 2026, 9, 6),
   ('Laferrere', 'Laferrere Centro', 2026, 1, 1),
   ('Laferrere', 'Laferrere Centro', 2026, 2, 1),
   ('Laferrere', 'Laferrere Centro', 2026, 4, 5),
@@ -936,8 +943,10 @@ INSERT INTO _bautismos (distrito, iglesia, anio, mes, bautismos) VALUES
   ('Laferrere', 'Laferrere Centro', 2026, 6, 3),
   ('Laferrere', 'Laferrere Centro', 2026, 7, 2),
   ('Laferrere', 'Laferrere Centro', 2026, 8, 2),
+  ('Laferrere', 'Laferrere Centro', 2026, 9, 20),
   ('Lomas de Zamora', 'Lomas de Zamora', 2026, 3, 5),
   ('Lomas de Zamora', 'Lomas de Zamora', 2026, 8, 2),
+  ('Lomas de Zamora', 'Lomas de Zamora', 2026, 9, 1),
   ('Mar del Plata Centro', 'Mar del Plata Centro', 2026, 1, 1),
   ('Mar del Plata Centro', 'Mar del Plata Centro', 2026, 7, 1),
   ('Mar del Plata Centro', 'Mar del Plata Centro', 2026, 8, 2),
@@ -950,13 +959,16 @@ INSERT INTO _bautismos (distrito, iglesia, anio, mes, bautismos) VALUES
   ('Monte Grande', 'Monte Grande', 2026, 4, 3),
   ('Monte Grande', 'Monte Grande', 2026, 6, 2),
   ('Monte Grande', 'Monte Grande', 2026, 8, 2),
+  ('Monte Grande', 'Monte Grande', 2026, 9, 2),
   ('Moreno', 'Moreno', 2026, 2, 1),
   ('Moreno', 'Moreno', 2026, 3, 4),
   ('Moreno', 'Moreno', 2026, 4, 4),
   ('Moreno', 'Moreno', 2026, 5, 1),
   ('Moreno', 'Moreno', 2026, 8, 3),
+  ('Moreno', 'Moreno', 2026, 9, 3),
   ('Morón', 'Morón', 2026, 4, 1),
   ('Morón', 'Morón', 2026, 5, 2),
+  ('Morón', 'Morón', 2026, 9, 4),
   ('Núñez', 'Núñez', 2026, 4, 2),
   ('Palermo', 'Palermo', 2026, 3, 3),
   ('Palermo', 'Palermo', 2026, 4, 7),
@@ -964,12 +976,14 @@ INSERT INTO _bautismos (distrito, iglesia, anio, mes, bautismos) VALUES
   ('Palermo', 'Palermo', 2026, 6, 3),
   ('Palermo', 'Palermo', 2026, 7, 1),
   ('Palermo', 'Palermo', 2026, 8, 3),
+  ('Palermo', 'Palermo', 2026, 9, 10),
   ('Parque Avellaneda', 'Parque Avellaneda Centro', 2026, 1, 2),
   ('Parque Avellaneda', 'Parque Avellaneda Centro', 2026, 2, 1),
   ('Parque Avellaneda', 'Parque Avellaneda Centro', 2026, 4, 4),
   ('Parque Avellaneda', 'Parque Avellaneda Centro', 2026, 5, 2),
   ('Parque Avellaneda', 'Parque Avellaneda Centro', 2026, 6, 3),
   ('Parque Avellaneda', 'Parque Avellaneda Centro', 2026, 8, 8),
+  ('Parque Avellaneda', 'Parque Avellaneda Centro', 2026, 9, 15),
   ('Rafael Calzada', 'Rafael Calzada', 2026, 2, 1),
   ('Rafael Calzada', 'Rafael Calzada', 2026, 3, 2),
   ('Rafael Calzada', 'Rafael Calzada', 2026, 4, 9),
@@ -977,6 +991,7 @@ INSERT INTO _bautismos (distrito, iglesia, anio, mes, bautismos) VALUES
   ('Rafael Calzada', 'Rafael Calzada', 2026, 6, 2),
   ('Rafael Calzada', 'Rafael Calzada', 2026, 7, 1),
   ('Rafael Calzada', 'Rafael Calzada', 2026, 8, 1),
+  ('Rafael Calzada', 'Rafael Calzada', 2026, 9, 6),
   ('San Justo - Liniers', 'San Justo', 2026, 4, 5),
   ('San Justo - Liniers', 'San Justo', 2026, 5, 1),
   ('San Justo - Liniers', 'San Justo', 2026, 7, 1),
@@ -984,14 +999,18 @@ INSERT INTO _bautismos (distrito, iglesia, anio, mes, bautismos) VALUES
   ('Tandil', 'Tandil', 2026, 4, 1),
   ('Tandil', 'Tandil', 2026, 5, 2),
   ('Tandil', 'Tandil', 2026, 7, 3),
+  ('Tandil', 'Tandil', 2026, 9, 2),
   ('Valentín Alsina', 'Valentín Alsina', 2026, 2, 3),
   ('Valentín Alsina', 'Valentín Alsina', 2026, 3, 2),
   ('Valentín Alsina', 'Valentín Alsina', 2026, 6, 2),
+  ('Valentín Alsina', 'Valentín Alsina', 2026, 9, 2),
   ('Villa Celina', 'Villa Celina', 2026, 4, 2),
   ('Villa Celina', 'Villa Celina', 2026, 7, 3),
   ('Villa Celina', 'Villa Celina', 2026, 8, 2),
+  ('Villa Celina', 'Villa Celina', 2026, 9, 11),
   ('Villa Lamadrid', 'Villa Lamadrid', 2026, 5, 1),
-  ('Villa Lamadrid', 'Villa Lamadrid', 2026, 7, 2);
+  ('Villa Lamadrid', 'Villa Lamadrid', 2026, 7, 2),
+  ('Villa Lamadrid', 'Villa Lamadrid', 2026, 9, 2);
 
 -- ============ 2. Organización ============
 -- Si tu base tiene más de una organización, reemplazá el SELECT por
@@ -1060,7 +1079,7 @@ BEGIN
     (2023, 580),
     (2024, 828),
     (2025, 837),
-    (2026, 254)
+    (2026, 366)
     ) AS t(anio, total)
     LEFT JOIN _resuelto r ON r.anio = t.anio
     GROUP BY t.anio, t.total
@@ -1096,7 +1115,7 @@ ON CONFLICT ("churchId", "year", "month") DO UPDATE
 COMMIT;
 
 -- ============ 6. Verificación ============
--- Esperado: 2021=666, 2022=798, 2023=580, 2024=828, 2025=837, 2026=254
+-- Esperado: 2021=666, 2022=798, 2023=580, 2024=828, 2025=837, 2026=366
 SELECT "year" AS anio,
        sum("baptismCount") AS bautismos,
        count(*) AS registros
