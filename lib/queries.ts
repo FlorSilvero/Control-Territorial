@@ -1,7 +1,14 @@
 import "server-only"
 import { prisma } from "@/lib/prisma"
 import { normalizeText } from "@/lib/utils"
-import { formatDuration, tenureInMonths } from "@/lib/date-utils"
+import {
+  formatDuration,
+  tenureInMonths,
+  ageInYears,
+  retirementDate,
+  retirementStatus,
+  timeToRetirement,
+} from "@/lib/date-utils"
 import {
   computeChurchStats,
   assignmentForDate,
@@ -449,7 +456,7 @@ export async function getPastorDetail(orgId: string, id: string) {
 // ---------------------------------------------------------------------------
 
 export async function getDashboardData(orgId: string) {
-  const [districts, pastorCount] = await Promise.all([
+  const [districts, pastorCount, pastorsWithBirthDate] = await Promise.all([
     prisma.district.findMany({
       where: { organizationId: orgId, archivedAt: null },
       include: {
@@ -458,6 +465,12 @@ export async function getDashboardData(orgId: string) {
       },
     }),
     prisma.pastor.count({ where: { organizationId: orgId, archivedAt: null } }),
+    prisma.pastor.findMany({
+      where: { organizationId: orgId, archivedAt: null, birthDate: { not: null } },
+      include: {
+        assignments: { where: { endDate: null }, include: { district: true }, take: 1 },
+      },
+    }),
   ])
 
   let churchCount = 0
@@ -527,6 +540,29 @@ export async function getDashboardData(orgId: string) {
     .sort((a, b) => a[0] - b[0])
     .map(([month, baptisms]) => ({ month, baptisms }))
 
+  // Pastores a menos de RETIREMENT_WARNING_YEARS de la edad de jubilación
+  // (o que ya la alcanzaron), los más próximos primero.
+  const upcomingRetirements = pastorsWithBirthDate
+    .flatMap((p) => {
+      const birthDate = p.birthDate!
+      const status = retirementStatus(birthDate)
+      if (!status) return []
+      const district = p.assignments[0]?.district
+      return [
+        {
+          pastorId: p.id,
+          pastorName: `${p.firstName} ${p.lastName}`,
+          districtId: district && district.archivedAt == null ? district.id : null,
+          districtName: district && district.archivedAt == null ? district.name : null,
+          age: ageInYears(birthDate),
+          retirementDate: retirementDate(birthDate),
+          status,
+          timeLeft: status === "soon" ? timeToRetirement(birthDate) : null,
+        },
+      ]
+    })
+    .sort((a, b) => a.retirementDate.getTime() - b.retirementDate.getTime())
+
   // Pastors ranked by baptisms during their tenures.
   const pastorRanking = await getPastorBaptismRanking(orgId)
 
@@ -545,6 +581,7 @@ export async function getDashboardData(orgId: string) {
     pastorRanking,
     pastorTenures: pastorTenures.sort((a, b) => b.months - a.months),
     vacantDistricts: vacantDistricts.sort((a, b) => a.name.localeCompare(b.name)),
+    upcomingRetirements,
   }
 }
 

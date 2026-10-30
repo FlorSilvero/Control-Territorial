@@ -15,10 +15,11 @@ import {
   TrendingUp,
   Clock,
   AlertTriangle,
+  Hourglass,
 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
-import { formatDate } from "@/lib/date-utils"
+import { formatDate, formatBirthDate, RETIREMENT_AGE, RETIREMENT_WARNING_YEARS } from "@/lib/date-utils"
 import type { getDashboardData } from "@/lib/queries"
 
 /** Pastores con más de este tiempo en su distrito se resaltan en el dashboard. */
@@ -158,6 +159,8 @@ export function DashboardGlobalView({ data }: { data: Awaited<ReturnType<typeof 
       </div>
 
       <PastorTenureCard tenures={data.pastorTenures} vacantDistricts={data.vacantDistricts} />
+
+      <UpcomingRetirementsCard retirements={data.upcomingRetirements} />
 
       {/* Rankings Section */}
       <div className="grid gap-6 md:grid-cols-2">
@@ -338,6 +341,68 @@ function PastorTenureCard({
               </Link>
             ))}
           </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function UpcomingRetirementsCard({
+  retirements,
+}: {
+  retirements: DashboardData["upcomingRetirements"]
+}) {
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold flex items-center gap-2">
+          <Hourglass className="size-4 text-destructive" />
+          Próximas Jubilaciones
+        </CardTitle>
+        <CardDescription>
+          Pastores a los que les faltan menos de {RETIREMENT_WARNING_YEARS} años para cumplir{" "}
+          {RETIREMENT_AGE}, ordenados por fecha de jubilación.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {retirements.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            Ningún pastor está a menos de {RETIREMENT_WARNING_YEARS} años de jubilarse.
+          </p>
+        ) : (
+          <ul className="lg:columns-2 lg:gap-x-8">
+            {retirements.map((r) => (
+              <li
+                key={r.pastorId}
+                className="break-inside-avoid border-l-2 border-destructive/60 bg-destructive/5 pl-3 py-2 mb-1 rounded-r-md"
+              >
+                <div className="flex items-baseline justify-between gap-3 text-sm">
+                  <div className="min-w-0 truncate">
+                    <Link href={`/pastors/${r.pastorId}`} className="font-medium hover:underline">
+                      {r.pastorName}
+                    </Link>
+                    <span className="text-muted-foreground"> · </span>
+                    {r.districtId ? (
+                      <Link
+                        href={`/districts/${r.districtId}`}
+                        className="text-muted-foreground hover:underline"
+                      >
+                        {r.districtName}
+                      </Link>
+                    ) : (
+                      <span className="text-muted-foreground">Sin distrito</span>
+                    )}
+                  </div>
+                  <span className="shrink-0 text-xs font-semibold tabular-nums text-destructive">
+                    {r.status === "reached" ? `Ya cumplió ${RETIREMENT_AGE}` : `Faltan ${r.timeLeft}`}
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {r.age} años · Cumple {RETIREMENT_AGE} el {formatBirthDate(r.retirementDate)}
+                </p>
+              </li>
+            ))}
+          </ul>
         )}
       </CardContent>
     </Card>
