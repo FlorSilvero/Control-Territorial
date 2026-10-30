@@ -32,6 +32,7 @@ export type PastorMinAggregateOutputType = {
   phone: string | null
   spouseName: string | null
   childrenNames: string | null
+  birthDate: Date | null
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -49,6 +50,7 @@ export type PastorMaxAggregateOutputType = {
   phone: string | null
   spouseName: string | null
   childrenNames: string | null
+  birthDate: Date | null
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -66,6 +68,7 @@ export type PastorCountAggregateOutputType = {
   phone: number
   spouseName: number
   childrenNames: number
+  birthDate: number
   notes: number
   createdAt: number
   updatedAt: number
@@ -85,6 +88,7 @@ export type PastorMinAggregateInputType = {
   phone?: true
   spouseName?: true
   childrenNames?: true
+  birthDate?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
@@ -102,6 +106,7 @@ export type PastorMaxAggregateInputType = {
   phone?: true
   spouseName?: true
   childrenNames?: true
+  birthDate?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
@@ -119,6 +124,7 @@ export type PastorCountAggregateInputType = {
   phone?: true
   spouseName?: true
   childrenNames?: true
+  birthDate?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
@@ -209,6 +215,7 @@ export type PastorGroupByOutputType = {
   phone: string | null
   spouseName: string | null
   childrenNames: string | null
+  birthDate: Date | null
   notes: string | null
   createdAt: Date
   updatedAt: Date
@@ -247,6 +254,7 @@ export type PastorWhereInput = {
   phone?: Prisma.StringNullableFilter<"Pastor"> | string | null
   spouseName?: Prisma.StringNullableFilter<"Pastor"> | string | null
   childrenNames?: Prisma.StringNullableFilter<"Pastor"> | string | null
+  birthDate?: Prisma.DateTimeNullableFilter<"Pastor"> | Date | string | null
   notes?: Prisma.StringNullableFilter<"Pastor"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Pastor"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Pastor"> | Date | string
@@ -266,6 +274,7 @@ export type PastorOrderByWithRelationInput = {
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   spouseName?: Prisma.SortOrderInput | Prisma.SortOrder
   childrenNames?: Prisma.SortOrderInput | Prisma.SortOrder
+  birthDate?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -288,6 +297,7 @@ export type PastorWhereUniqueInput = Prisma.AtLeast<{
   phone?: Prisma.StringNullableFilter<"Pastor"> | string | null
   spouseName?: Prisma.StringNullableFilter<"Pastor"> | string | null
   childrenNames?: Prisma.StringNullableFilter<"Pastor"> | string | null
+  birthDate?: Prisma.DateTimeNullableFilter<"Pastor"> | Date | string | null
   notes?: Prisma.StringNullableFilter<"Pastor"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Pastor"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Pastor"> | Date | string
@@ -307,6 +317,7 @@ export type PastorOrderByWithAggregationInput = {
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   spouseName?: Prisma.SortOrderInput | Prisma.SortOrder
   childrenNames?: Prisma.SortOrderInput | Prisma.SortOrder
+  birthDate?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -330,6 +341,7 @@ export type PastorScalarWhereWithAggregatesInput = {
   phone?: Prisma.StringNullableWithAggregatesFilter<"Pastor"> | string | null
   spouseName?: Prisma.StringNullableWithAggregatesFilter<"Pastor"> | string | null
   childrenNames?: Prisma.StringNullableWithAggregatesFilter<"Pastor"> | string | null
+  birthDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Pastor"> | Date | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"Pastor"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Pastor"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Pastor"> | Date | string
@@ -347,6 +359,7 @@ export type PastorCreateInput = {
   phone?: string | null
   spouseName?: string | null
   childrenNames?: string | null
+  birthDate?: Date | string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -365,6 +378,7 @@ export type PastorUncheckedCreateInput = {
   phone?: string | null
   spouseName?: string | null
   childrenNames?: string | null
+  birthDate?: Date | string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -383,6 +397,7 @@ export type PastorUpdateInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   childrenNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -401,6 +416,7 @@ export type PastorUncheckedUpdateInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   childrenNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -419,6 +435,7 @@ export type PastorCreateManyInput = {
   phone?: string | null
   spouseName?: string | null
   childrenNames?: string | null
+  birthDate?: Date | string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -436,6 +453,7 @@ export type PastorUpdateManyMutationInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   childrenNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -452,6 +470,7 @@ export type PastorUncheckedUpdateManyInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   childrenNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -479,6 +498,7 @@ export type PastorCountOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   spouseName?: Prisma.SortOrder
   childrenNames?: Prisma.SortOrder
+  birthDate?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -496,6 +516,7 @@ export type PastorMaxOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   spouseName?: Prisma.SortOrder
   childrenNames?: Prisma.SortOrder
+  birthDate?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -513,6 +534,7 @@ export type PastorMinOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   spouseName?: Prisma.SortOrder
   childrenNames?: Prisma.SortOrder
+  birthDate?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -591,6 +613,7 @@ export type PastorCreateWithoutOrganizationInput = {
   phone?: string | null
   spouseName?: string | null
   childrenNames?: string | null
+  birthDate?: Date | string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -608,6 +631,7 @@ export type PastorUncheckedCreateWithoutOrganizationInput = {
   phone?: string | null
   spouseName?: string | null
   childrenNames?: string | null
+  birthDate?: Date | string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -654,6 +678,7 @@ export type PastorScalarWhereInput = {
   phone?: Prisma.StringNullableFilter<"Pastor"> | string | null
   spouseName?: Prisma.StringNullableFilter<"Pastor"> | string | null
   childrenNames?: Prisma.StringNullableFilter<"Pastor"> | string | null
+  birthDate?: Prisma.DateTimeNullableFilter<"Pastor"> | Date | string | null
   notes?: Prisma.StringNullableFilter<"Pastor"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Pastor"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Pastor"> | Date | string
@@ -671,6 +696,7 @@ export type PastorCreateWithoutAssignmentsInput = {
   phone?: string | null
   spouseName?: string | null
   childrenNames?: string | null
+  birthDate?: Date | string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -688,6 +714,7 @@ export type PastorUncheckedCreateWithoutAssignmentsInput = {
   phone?: string | null
   spouseName?: string | null
   childrenNames?: string | null
+  birthDate?: Date | string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -721,6 +748,7 @@ export type PastorUpdateWithoutAssignmentsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   childrenNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -738,6 +766,7 @@ export type PastorUncheckedUpdateWithoutAssignmentsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   childrenNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -755,6 +784,7 @@ export type PastorCreateManyOrganizationInput = {
   phone?: string | null
   spouseName?: string | null
   childrenNames?: string | null
+  birthDate?: Date | string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -771,6 +801,7 @@ export type PastorUpdateWithoutOrganizationInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   childrenNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -788,6 +819,7 @@ export type PastorUncheckedUpdateWithoutOrganizationInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   childrenNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -805,6 +837,7 @@ export type PastorUncheckedUpdateManyWithoutOrganizationInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   childrenNames?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -852,6 +885,7 @@ export type PastorSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   phone?: boolean
   spouseName?: boolean
   childrenNames?: boolean
+  birthDate?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -872,6 +906,7 @@ export type PastorSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   phone?: boolean
   spouseName?: boolean
   childrenNames?: boolean
+  birthDate?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -890,6 +925,7 @@ export type PastorSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   phone?: boolean
   spouseName?: boolean
   childrenNames?: boolean
+  birthDate?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -908,6 +944,7 @@ export type PastorSelectScalar = {
   phone?: boolean
   spouseName?: boolean
   childrenNames?: boolean
+  birthDate?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -917,7 +954,7 @@ export type PastorSelectScalar = {
   updatedById?: boolean
 }
 
-export type PastorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firstName" | "lastName" | "email" | "phone" | "spouseName" | "childrenNames" | "notes" | "createdAt" | "updatedAt" | "archivedAt" | "organizationId" | "createdById" | "updatedById", ExtArgs["result"]["pastor"]>
+export type PastorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firstName" | "lastName" | "email" | "phone" | "spouseName" | "childrenNames" | "birthDate" | "notes" | "createdAt" | "updatedAt" | "archivedAt" | "organizationId" | "createdById" | "updatedById", ExtArgs["result"]["pastor"]>
 export type PastorInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   assignments?: boolean | Prisma.Pastor$assignmentsArgs<ExtArgs>
@@ -944,6 +981,7 @@ export type $PastorPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     phone: string | null
     spouseName: string | null
     childrenNames: string | null
+    birthDate: Date | null
     notes: string | null
     createdAt: Date
     updatedAt: Date
@@ -1383,6 +1421,7 @@ export interface PastorFieldRefs {
   readonly phone: Prisma.FieldRef<"Pastor", 'String'>
   readonly spouseName: Prisma.FieldRef<"Pastor", 'String'>
   readonly childrenNames: Prisma.FieldRef<"Pastor", 'String'>
+  readonly birthDate: Prisma.FieldRef<"Pastor", 'DateTime'>
   readonly notes: Prisma.FieldRef<"Pastor", 'String'>
   readonly createdAt: Prisma.FieldRef<"Pastor", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Pastor", 'DateTime'>

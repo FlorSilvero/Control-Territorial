@@ -37,6 +37,16 @@ export const pastorSchema = z.object({
     .or(z.literal("")),
   spouseName: z.string().trim().max(160).optional().or(z.literal("")),
   childrenNames: z.string().trim().max(1000).optional().or(z.literal("")),
+  birthDate: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha de nacimiento inválida")
+    .refine((v) => {
+      const d = new Date(`${v}T00:00:00Z`)
+      return !Number.isNaN(d.getTime()) && d.getUTCFullYear() >= 1900 && d <= new Date()
+    }, "Fecha de nacimiento inválida")
+    .optional()
+    .or(z.literal("")),
   notes: z.string().trim().max(1000).optional().or(z.literal("")),
 })
 export type PastorInput = z.infer<typeof pastorSchema>

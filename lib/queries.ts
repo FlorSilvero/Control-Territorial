@@ -346,6 +346,7 @@ export async function listPastors(orgId: string, opts: { archived?: boolean } = 
       firstName: p.firstName,
       lastName: p.lastName,
       email: p.email,
+      birthDate: p.birthDate,
       archivedAt: p.archivedAt,
       currentDistrict: current
         ? { id: current.district.id, name: current.district.name, since: current.startDate }
@@ -433,6 +434,7 @@ export async function getPastorDetail(orgId: string, id: string) {
     phone: pastor.phone,
     spouseName: pastor.spouseName,
     childrenNames: pastor.childrenNames,
+    birthDate: pastor.birthDate,
     notes: pastor.notes,
     archivedAt: pastor.archivedAt,
     currentDistrict: current

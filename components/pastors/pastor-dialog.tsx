@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { createPastor, updatePastor } from "@/lib/actions/pastors"
+import { toDateInputValue } from "@/lib/date-utils"
 import { toast } from "sonner"
 
 export function PastorDialog({
@@ -32,6 +33,7 @@ export function PastorDialog({
     phone?: string | null
     spouseName?: string | null
     childrenNames?: string | null
+    birthDate?: Date | null
     notes?: string | null
   } | null
 }) {
@@ -41,6 +43,7 @@ export function PastorDialog({
   const [phone, setPhone] = useState(pastor?.phone ?? "")
   const [spouseName, setSpouseName] = useState(pastor?.spouseName ?? "")
   const [childrenNames, setChildrenNames] = useState(pastor?.childrenNames ?? "")
+  const [birthDate, setBirthDate] = useState(toDateInputValue(pastor?.birthDate))
   const [notes, setNotes] = useState(pastor?.notes ?? "")
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -50,7 +53,7 @@ export function PastorDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     startTransition(async () => {
-      const data = { firstName, lastName, email, phone, spouseName, childrenNames, notes }
+      const data = { firstName, lastName, email, phone, spouseName, childrenNames, birthDate, notes }
       const res = isEditing ? await updatePastor(pastor.id, data) : await createPastor(data)
 
       if (res.ok) {
@@ -63,6 +66,7 @@ export function PastorDialog({
           setPhone("")
           setSpouseName("")
           setChildrenNames("")
+          setBirthDate("")
           setNotes("")
         }
         router.refresh()
@@ -150,6 +154,19 @@ export function PastorDialog({
                 placeholder="Nombres separados por coma"
                 value={childrenNames}
                 onChange={(e) => setChildrenNames(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="pastor-birthdate">Fecha de nacimiento</Label>
+              <Input
+                id="pastor-birthdate"
+                type="date"
+                max={new Date().toISOString().slice(0, 10)}
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
               />
             </div>
           </div>

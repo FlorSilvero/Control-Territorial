@@ -185,6 +185,7 @@ export const PastorScalarFieldEnum = {
   phone: 'phone',
   spouseName: 'spouseName',
   childrenNames: 'childrenNames',
+  birthDate: 'birthDate',
   notes: 'notes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',

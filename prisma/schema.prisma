@@ -168,6 +168,8 @@ model Pastor {
   phone     String?
   spouseName String?
   childrenNames String?
+  // Plain calendar date (no time): read it with UTC getters so it never shifts a day.
+  birthDate DateTime? @db.Date
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

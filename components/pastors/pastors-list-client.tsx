@@ -16,7 +16,17 @@ import {
 import { PastorDialog } from "@/components/pastors/pastor-dialog"
 import { AssignPastorDialog } from "@/components/pastors/assign-pastor-dialog"
 import { ImportPastorsDialog } from "@/components/pastors/import-pastors-dialog"
-import { formatDuration, formatDate, tenureInMonths } from "@/lib/date-utils"
+import { RetirementBadge } from "@/components/pastors/retirement-badge"
+import {
+  ageInYears,
+  formatDuration,
+  formatDate,
+  retirementStatus,
+  tenureInMonths,
+  RETIREMENT_AGE,
+  RETIREMENT_WARNING_YEARS,
+} from "@/lib/date-utils"
+import { cn } from "@/lib/utils"
 import { normalizeText } from "@/lib/utils"
 import {
   Users,
@@ -38,6 +48,7 @@ type PastorItem = {
   firstName: string
   lastName: string
   email?: string | null
+  birthDate?: Date | null
   archivedAt?: Date | null
   currentDistrict: {
     id: string
@@ -76,6 +87,7 @@ export function PastorsListClient({
     if (!matchesSearch) return false
 
     if (tenureFilter === "all") return true
+    if (tenureFilter === "retirement") return retirementStatus(p.birthDate) !== null
     if (!p.currentDistrict) return false // No tenure if unassigned
 
     const months = tenureInMonths(new Date(p.currentDistrict.since), null)
@@ -163,6 +175,7 @@ export function PastorsListClient({
             "1-3": "1 a 3 años",
             "3-5": "3 a 5 años",
             "gt-5": "Más de 5 años",
+            retirement: `Próximos a los ${RETIREMENT_AGE}`,
           }}
         >
           <SelectTrigger className="w-full sm:w-52">
@@ -175,6 +188,9 @@ export function PastorsListClient({
             <SelectItem value="1-3">1 a 3 años</SelectItem>
             <SelectItem value="3-5">3 a 5 años</SelectItem>
             <SelectItem value="gt-5">Más de 5 años</SelectItem>
+            <SelectItem value="retirement">
+              Próximos a los {RETIREMENT_AGE} (≤ {RETIREMENT_WARNING_YEARS} años)
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -221,8 +237,16 @@ export function PastorsListClient({
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map((p) => {
             const fullName = `${p.firstName} ${p.lastName}`
+            const retirement = retirementStatus(p.birthDate)
             return (
-              <Card key={p.id} className="flex flex-col justify-between hover:border-primary/50 transition-all">
+              <Card
+                key={p.id}
+                className={cn(
+                  "flex flex-col justify-between hover:border-primary/50 transition-all",
+                  retirement === "soon" && "border-amber-500/60 ring-1 ring-amber-500/30",
+                  retirement === "reached" && "border-destructive/60 ring-1 ring-destructive/30",
+                )}
+              >
                 <div>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
@@ -246,6 +270,12 @@ export function PastorsListClient({
                   </CardHeader>
 
                   <CardContent className="space-y-3">
+                    {p.birthDate && retirement && (
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        <RetirementBadge status={retirement} birthDate={p.birthDate} />
+                        <span>{ageInYears(p.birthDate)} años</span>
+                      </div>
+                    )}
                     {p.currentDistrict ? (
                       <div className="space-y-1.5 rounded-md bg-muted/60 p-3 text-xs">
                         <div className="flex items-center justify-between text-muted-foreground">

@@ -82,6 +82,11 @@ async function findDuplicatePastor(
   )
 }
 
+/** "YYYY-MM-DD" → UTC midnight, matching the DATE column (no timezone shift). */
+function parseBirthDate(value: string | undefined): Date | null {
+  return value ? new Date(`${value}T00:00:00Z`) : null
+}
+
 function duplicatePastorError(duplicate: { archivedAt: Date | null }): string {
   return duplicate.archivedAt
     ? "Ya existe un pastor archivado con ese nombre y apellido. Restauralo desde Archivados en lugar de crear uno nuevo."
@@ -107,6 +112,7 @@ export async function createPastor(input: unknown): Promise<ActionResult> {
       phone: parsed.data.phone || null,
       spouseName: parsed.data.spouseName || null,
       childrenNames: parsed.data.childrenNames || null,
+      birthDate: parseBirthDate(parsed.data.birthDate),
       notes: parsed.data.notes || null,
       createdById: ctx.userId,
       updatedById: ctx.userId,
@@ -145,6 +151,7 @@ export async function updatePastor(id: string, input: unknown): Promise<ActionRe
       phone: parsed.data.phone || null,
       spouseName: parsed.data.spouseName || null,
       childrenNames: parsed.data.childrenNames || null,
+      birthDate: parseBirthDate(parsed.data.birthDate),
       notes: parsed.data.notes || null,
       updatedById: ctx.userId,
     },
