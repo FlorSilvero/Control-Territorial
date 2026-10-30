@@ -26,18 +26,13 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { PastorDialog } from "@/components/pastors/pastor-dialog"
-import { RetirementBadge } from "@/components/pastors/retirement-badge"
+import { PastorBirthInfo } from "@/components/pastors/pastor-birth-info"
 import { AssignPastorDialog } from "@/components/pastors/assign-pastor-dialog"
 import { archivePastor } from "@/lib/actions/pastors"
 import {
-  ageInYears,
-  formatBirthDate,
   formatDate,
   formatDuration,
   MONTH_NAMES,
-  retirementDate,
-  retirementStatus,
-  RETIREMENT_AGE,
 } from "@/lib/date-utils"
 import {
   MapPinned,
@@ -52,7 +47,6 @@ import {
   Users,
   Heart,
   Baby,
-  Cake,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -101,7 +95,6 @@ export function PastorDetailClient({
   const router = useRouter()
 
   const fullName = `${pastor.firstName} ${pastor.lastName}`
-  const retirement = retirementStatus(pastor.birthDate)
 
   const handleArchive = () => {
     startTransition(async () => {
@@ -144,7 +137,6 @@ export function PastorDetailClient({
           <div className="flex items-center gap-3">
             <h1 className="font-serif text-3xl font-bold tracking-tight">{fullName}</h1>
             {pastor.archivedAt && <Badge variant="destructive">Archivado</Badge>}
-            {pastor.birthDate && retirement && <RetirementBadge status={retirement} birthDate={pastor.birthDate} />}
             {pastor.currentDistrict ? (
               <Badge variant="secondary" className="gap-1">
                 <MapPinned className="size-3" />
@@ -154,6 +146,7 @@ export function PastorDetailClient({
               <Badge variant="outline">Sin asignación activa</Badge>
             )}
           </div>
+          <PastorBirthInfo birthDate={pastor.birthDate} className="mt-2 text-sm [&_svg]:size-4" />
           <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
             {pastor.email && (
               <span className="flex items-center gap-1.5">
@@ -165,17 +158,6 @@ export function PastorDetailClient({
               <span className="flex items-center gap-1.5">
                 <Phone className="size-3.5" />
                 {pastor.phone}
-              </span>
-            )}
-            {pastor.birthDate && (
-              <span className="flex items-center gap-1.5">
-                <Cake className="size-3.5" />
-                {formatBirthDate(pastor.birthDate)} ({ageInYears(pastor.birthDate)} años)
-                {retirement && (
-                  <span className={retirement === "reached" ? "text-destructive" : "text-amber-600 dark:text-amber-400"}>
-                    · cumple {RETIREMENT_AGE} el {formatBirthDate(retirementDate(pastor.birthDate))}
-                  </span>
-                )}
               </span>
             )}
           </div>

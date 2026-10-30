@@ -16,9 +16,8 @@ import {
 import { PastorDialog } from "@/components/pastors/pastor-dialog"
 import { AssignPastorDialog } from "@/components/pastors/assign-pastor-dialog"
 import { ImportPastorsDialog } from "@/components/pastors/import-pastors-dialog"
-import { RetirementBadge } from "@/components/pastors/retirement-badge"
+import { PastorBirthInfo } from "@/components/pastors/pastor-birth-info"
 import {
-  ageInYears,
   formatDuration,
   formatDate,
   retirementStatus,
@@ -26,7 +25,6 @@ import {
   RETIREMENT_AGE,
   RETIREMENT_WARNING_YEARS,
 } from "@/lib/date-utils"
-import { cn } from "@/lib/utils"
 import { normalizeText } from "@/lib/utils"
 import {
   Users,
@@ -237,25 +235,20 @@ export function PastorsListClient({
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map((p) => {
             const fullName = `${p.firstName} ${p.lastName}`
-            const retirement = retirementStatus(p.birthDate)
             return (
-              <Card
-                key={p.id}
-                className={cn(
-                  "flex flex-col justify-between hover:border-primary/50 transition-all",
-                  retirement === "soon" && "border-amber-500/60 ring-1 ring-amber-500/30",
-                  retirement === "reached" && "border-destructive/60 ring-1 ring-destructive/30",
-                )}
-              >
+              <Card key={p.id} className="flex flex-col justify-between hover:border-primary/50 transition-all">
                 <div>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="font-serif text-xl font-bold flex items-center gap-2">
-                        <Users className="size-5 text-primary shrink-0" />
-                        <Link href={`/pastors/${p.id}`} className="hover:underline">
-                          {fullName}
-                        </Link>
-                      </CardTitle>
+                      <div className="space-y-1.5">
+                        <CardTitle className="font-serif text-xl font-bold flex items-center gap-2">
+                          <Users className="size-5 text-primary shrink-0" />
+                          <Link href={`/pastors/${p.id}`} className="hover:underline">
+                            {fullName}
+                          </Link>
+                        </CardTitle>
+                        <PastorBirthInfo birthDate={p.birthDate} className="pl-7" />
+                      </div>
                       {p.currentDistrict ? (
                         <Badge variant="secondary" className="shrink-0 flex items-center gap-1">
                           <MapPinned className="size-3" />
@@ -270,12 +263,6 @@ export function PastorsListClient({
                   </CardHeader>
 
                   <CardContent className="space-y-3">
-                    {p.birthDate && retirement && (
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                        <RetirementBadge status={retirement} birthDate={p.birthDate} />
-                        <span>{ageInYears(p.birthDate)} años</span>
-                      </div>
-                    )}
                     {p.currentDistrict ? (
                       <div className="space-y-1.5 rounded-md bg-muted/60 p-3 text-xs">
                         <div className="flex items-center justify-between text-muted-foreground">
